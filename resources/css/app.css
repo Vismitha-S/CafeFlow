@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[x-cloak] {
+    display: none;
+}
+
+// CafeFlow custom base layer styles
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply text-coffee-800 bg-cream-50;
+    }
+}
+
+// CafeFlow reusable component styles
+@layer components {
+    // Primary CTA button used across the application
+    .btn-primary {
+        @apply inline-flex items-center justify-center px-6 py-3 bg-accent-500 text-white font-semibold rounded-xl
+               hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-400 focus:ring-offset-2
+               transition-all duration-300 ease-in-out transform hover:scale-[1.02] active:scale-[0.98];
+    }
+
+    // Secondary outlined button for less-prominent actions
+    .btn-secondary {
+        @apply inline-flex items-center justify-center px-6 py-3 bg-transparent border-2 border-coffee-800 text-coffee-800
+               font-semibold rounded-xl hover:bg-coffee-800 hover:text-white focus:outline-none focus:ring-2
+               focus:ring-coffee-400 focus:ring-offset-2 transition-all duration-300 ease-in-out;
+    }
+
+    // Cafe card component with lift-on-hover effect
+    .cafe-card {
+        @apply bg-white rounded-2xl shadow-sm border border-cream-200 overflow-hidden
+               transition-all duration-300 ease-in-out hover:shadow-lg hover:-translate-y-1;
+    }
+
+    // Dashboard stat card with subtle hover interaction
+    .dashboard-card {
+        @apply bg-white rounded-2xl shadow-sm border border-cream-200 p-6
+               transition-all duration-300 hover:shadow-md hover:border-accent-200;
+    }
+
+    // Section heading with decorative styling
+    .section-heading {
+        @apply font-display text-3xl md:text-4xl font-bold text-coffee-800 tracking-tight;
+    }
+
+    // Subtle label/tag component
+    .badge {
+        @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    }
+
+    .badge-accent {
+        @apply badge bg-accent-50 text-accent-700;
+    }
+
+    .badge-coffee {
+        @apply badge bg-coffee-50 text-coffee-700;
+    }
+}
+
+// Intersection Observer scroll-reveal animation classes
+@layer utilities {
+    // Elements start hidden, then revealed by JS scroll observer
+    .scroll-reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+
+    .scroll-reveal.revealed {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    // Stagger delay classes for sequential reveal effects
+    .delay-100 { transition-delay: 100ms; }
+    .delay-200 { transition-delay: 200ms; }
+    .delay-300 { transition-delay: 300ms; }
+    .delay-400 { transition-delay: 400ms; }
+    .delay-500 { transition-delay: 500ms; }
+}
