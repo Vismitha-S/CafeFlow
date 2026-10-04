@@ -36,4 +36,14 @@ class Cafe extends Model
     {
         return $this->hasMany(CafeTable::class);
     }
+
+    public function menuCategories(): HasMany
+    {
+        return $this->hasMany(MenuCategory::class);
+    }
+
+    public function menuItems(): HasMany
+    {
+        return $this->hasMany(MenuItem::class);
+    }
 }
