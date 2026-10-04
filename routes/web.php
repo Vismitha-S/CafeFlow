@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CafeController;
+use App\Http\Controllers\CafeTableController;
 
 // Public landing page
 Route::get('/', function () {
@@ -49,6 +50,14 @@ Route::middleware([
     Route::put('/cafes/{cafe}', [CafeController::class, 'update'])->name('cafes.update')->where('cafe', '[0-9]+');
     Route::patch('/cafes/{cafe}', [CafeController::class, 'update'])->where('cafe', '[0-9]+');
     Route::delete('/cafes/{cafe}', [CafeController::class, 'destroy'])->name('cafes.destroy')->where('cafe', '[0-9]+');
+
+    // Cafe Table Management Routes
+    Route::get('/cafes/{cafe}/tables', [CafeTableController::class, 'index'])->name('cafe-tables.index')->where('cafe', '[0-9]+');
+    Route::post('/cafes/{cafe}/tables', [CafeTableController::class, 'store'])->name('cafe-tables.store')->where('cafe', '[0-9]+');
+    Route::get('/cafe-tables/{cafeTable}', [CafeTableController::class, 'show'])->name('cafe-tables.show');
+    Route::put('/cafe-tables/{cafeTable}', [CafeTableController::class, 'update'])->name('cafe-tables.update');
+    Route::patch('/cafe-tables/{cafeTable}', [CafeTableController::class, 'update']);
+    Route::delete('/cafe-tables/{cafeTable}', [CafeTableController::class, 'destroy'])->name('cafe-tables.destroy');
 
     // Customer Discovery and Cafe Details
     Route::get('/explore', [CustomerController::class, 'explore'])->name('customer.explore');
