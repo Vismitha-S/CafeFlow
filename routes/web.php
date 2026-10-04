@@ -15,17 +15,29 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    // Default dashboard redirects to the customer dashboard
-    Route::get('/dashboard', [CustomerController::class, 'home'])->name('dashboard');
+    // Default dashboard redirects based on role
+    Route::get('/dashboard', function () {
+        $user = auth()->user();
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        } elseif ($user->isOwner()) {
+            return redirect()->route('owner.dashboard');
+        }
+        return redirect()->route('customer.dashboard');
+    })->name('dashboard');
 
     // Role-specific dashboard routes
-    Route::get('/admin/dashboard', function () {
-        return view('dashboards.admin');
-    })->name('admin.dashboard');
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/admin/dashboard', function () {
+            return view('dashboards.admin');
+        })->name('admin.dashboard');
+    });
 
-    Route::get('/owner/dashboard', function () {
-        return view('dashboards.owner');
-    })->name('owner.dashboard');
+    Route::middleware('role:owner')->group(function () {
+        Route::get('/owner/dashboard', function () {
+            return view('dashboards.owner');
+        })->name('owner.dashboard');
+    });
 
     Route::get('/customer/dashboard', [CustomerController::class, 'home'])->name('customer.dashboard');
 
