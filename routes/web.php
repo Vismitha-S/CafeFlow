@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CafeController;
 
 // Public landing page
 Route::get('/', function () {
@@ -40,6 +41,14 @@ Route::middleware([
     });
 
     Route::get('/customer/dashboard', [CustomerController::class, 'home'])->name('customer.dashboard');
+
+    // Cafe Management Routes
+    Route::get('/cafes', [CafeController::class, 'index'])->name('cafes.index');
+    Route::post('/cafes', [CafeController::class, 'store'])->name('cafes.store');
+    Route::get('/cafes/{cafe}', [CafeController::class, 'show'])->name('cafes.show')->where('cafe', '[0-9]+');
+    Route::put('/cafes/{cafe}', [CafeController::class, 'update'])->name('cafes.update')->where('cafe', '[0-9]+');
+    Route::patch('/cafes/{cafe}', [CafeController::class, 'update'])->where('cafe', '[0-9]+');
+    Route::delete('/cafes/{cafe}', [CafeController::class, 'destroy'])->name('cafes.destroy')->where('cafe', '[0-9]+');
 
     // Customer Discovery and Cafe Details
     Route::get('/explore', [CustomerController::class, 'explore'])->name('customer.explore');

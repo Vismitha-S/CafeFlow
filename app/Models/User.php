@@ -10,6 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -93,5 +94,10 @@ class User extends Authenticatable
     public function isCustomer(): bool
     {
         return $this->role === self::ROLE_CUSTOMER;
+    }
+
+    public function cafes(): HasMany
+    {
+        return $this->hasMany(Cafe::class, 'owner_id');
     }
 }
