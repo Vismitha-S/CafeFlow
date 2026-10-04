@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Models\Cafe;
 use App\Models\CafeTable;
 use App\Models\Reservation;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -19,6 +21,19 @@ class ReservationService
     public function calculateEndTime(string $startTime, ?int $durationMinutes = null): string
     {
         return $this->availabilityService->calculateEndTime($startTime, $durationMinutes);
+    }
+
+    // Validate that the reservation date is not in the past
+    public function validateReservationDateNotPast(string $date): void
+    {
+        $reservationDate = Carbon::parse($date)->startOfDay();
+        $today = Carbon::today();
+
+        if ($reservationDate->lt($today)) {
+            throw ValidationException::withMessages([
+                'reservation_date' => ['Reservation date cannot be in the past.'],
+            ]);
+        }
     }
 
     // Validate that the requested table belongs to the specified cafe
@@ -92,30 +107,53 @@ class ReservationService
     }
 
     // Concurrency-safe reservation creation within a database transaction and row locking
-    public function createReservation(array $data): Reservation
+    public function createReservation(User|array $userOrData, ?Cafe $cafe = null, array $data = []): Reservation
     {
-        return DB::transaction(function () use ($data) {
-            $cafe = Cafe::findOrFail($data['cafe_id']);
+        if ($userOrData instanceof User) {
+            $user = $userOrData;
+            $cafeModel = $cafe;
+            $bookingData = $data;
+            $isCustomerSubmission = true;
+        } else {
+            $bookingData = $userOrData;
+            $cafeModel = $cafe ?? Cafe::findOrFail($bookingData['cafe_id']);
+            $user = isset($bookingData['user_id']) ? User::find($bookingData['user_id']) : null;
+            $isCustomerSubmission = false;
+        }
+
+        return DB::transaction(function () use ($user, $cafeModel, $bookingData, $isCustomerSubmission) {
+            // Confirm cafe is active
+            $this->validateCafeIsActive($cafeModel);
+
+            // Confirm reservation date is not in the past
+            $this->validateReservationDateNotPast($bookingData['reservation_date']);
 
             // Lock table row to prevent race conditions during table assignment
-            $table = CafeTable::where('id', $data['cafe_table_id'])->lockForUpdate()->firstOrFail();
+            $table = CafeTable::where('id', $bookingData['cafe_table_id'])->lockForUpdate()->first();
+            if (! $table || $table->trashed()) {
+                throw ValidationException::withMessages([
+                    'cafe_table_id' => ['The selected table does not exist.'],
+                ]);
+            }
 
-            $this->validateCafeIsActive($cafe);
+            // Confirm table is active and belongs to cafe
             $this->validateTableIsActive($table);
-            $this->validateTableBelongsToCafe($cafe, $table);
-            $this->validateTableCapacity($table, (int) $data['guest_count']);
+            $this->validateTableBelongsToCafe($cafeModel, $table);
+            $this->validateTableCapacity($table, (int) $bookingData['guest_count']);
 
-            $duration = $data['duration_minutes'] ?? (int) config('reservations.default_duration_minutes', 90);
-            $startTime = Carbon::parse($data['start_time'])->format('H:i');
+            // Calculate end time
+            $duration = $bookingData['duration_minutes'] ?? (int) config('reservations.default_duration_minutes', 90);
+            $startTime = Carbon::parse($bookingData['start_time'])->format('H:i');
             $endTime = $this->calculateEndTime($startTime, $duration);
 
-            $this->validateCafeOpeningHours($cafe, $data['reservation_date'], $startTime, $endTime);
+            // Validate cafe opening hours
+            $this->validateCafeOpeningHours($cafeModel, $bookingData['reservation_date'], $startTime, $endTime);
 
             // Row-level lock on existing reservations for this table to prevent double-booking
             $blockingStatuses = config('reservations.blocking_statuses', ['pending', 'confirmed']);
             $hasConflict = Reservation::query()
                 ->where('cafe_table_id', $table->id)
-                ->whereDate('reservation_date', $data['reservation_date'])
+                ->whereDate('reservation_date', $bookingData['reservation_date'])
                 ->whereIn('status', $blockingStatuses)
                 ->where('start_time', '<', $endTime . ':00')
                 ->where('end_time', '>', $startTime . ':00')
@@ -124,27 +162,91 @@ class ReservationService
 
             if ($hasConflict) {
                 throw ValidationException::withMessages([
-                    'table' => ['The selected table is no longer available for the requested time.'],
+                    'table' => ['This table is no longer available for the selected time.'],
                 ]);
             }
 
             // Snapshot dynamic cafe pricing at the exact moment of booking
-            $reservationFee = $this->getCafeReservationFee($cafe);
-            $cancellationPenalty = $this->getCafeCancellationPenaltyPercentage($cafe);
+            $reservationFee = $this->getCafeReservationFee($cafeModel);
+            $cancellationPenalty = $this->getCafeCancellationPenaltyPercentage($cafeModel);
+
+            // Determine status: always pending for customer submissions
+            $status = $isCustomerSubmission ? 'pending' : ($bookingData['status'] ?? 'pending');
+            $userId = $isCustomerSubmission ? $user->id : (int) ($bookingData['user_id'] ?? $user?->id);
 
             return Reservation::create([
-                'cafe_id' => $cafe->id,
+                'cafe_id' => $cafeModel->id,
                 'cafe_table_id' => $table->id,
-                'user_id' => $data['user_id'],
-                'reservation_date' => $data['reservation_date'],
+                'user_id' => $userId,
+                'reservation_date' => $bookingData['reservation_date'],
                 'start_time' => $startTime,
                 'end_time' => $endTime,
-                'guest_count' => (int) $data['guest_count'],
-                'status' => $data['status'] ?? 'pending',
+                'guest_count' => (int) $bookingData['guest_count'],
+                'status' => $status,
                 'reservation_fee' => $reservationFee,
                 'cancellation_penalty_percentage' => $cancellationPenalty,
-                'notes' => $data['notes'] ?? null,
+                'notes' => $bookingData['notes'] ?? null,
             ]);
         });
+    }
+
+    // Get reservations for the user based on role, avoiding N+1 queries
+    public function getReservationsForUser(User $user): array|Collection
+    {
+        if ($user->isAdmin()) {
+            return Reservation::with(['cafe', 'cafeTable', 'user'])
+                ->orderBy('reservation_date', 'desc')
+                ->orderBy('start_time', 'desc')
+                ->get();
+        }
+
+        if ($user->isOwner()) {
+            return Reservation::with(['cafe', 'cafeTable', 'user'])
+                ->whereHas('cafe', fn ($q) => $q->where('owner_id', $user->id))
+                ->orderBy('reservation_date', 'desc')
+                ->orderBy('start_time', 'desc')
+                ->get();
+        }
+
+        $today = Carbon::today()->toDateString();
+        $nowTime = Carbon::now()->format('H:i');
+
+        $upcoming = Reservation::with(['cafe', 'cafeTable', 'user'])
+            ->where('user_id', $user->id)
+            ->where(function ($query) use ($today, $nowTime) {
+                $query->whereDate('reservation_date', '>', $today)
+                    ->orWhere(function ($q) use ($today, $nowTime) {
+                        $q->whereDate('reservation_date', $today)
+                            ->where('end_time', '>=', $nowTime);
+                    });
+            })
+            ->orderBy('reservation_date', 'asc')
+            ->orderBy('start_time', 'asc')
+            ->get();
+
+        $past = Reservation::with(['cafe', 'cafeTable', 'user'])
+            ->where('user_id', $user->id)
+            ->where(function ($query) use ($today, $nowTime) {
+                $query->whereDate('reservation_date', '<', $today)
+                    ->orWhere(function ($q) use ($today, $nowTime) {
+                        $q->whereDate('reservation_date', $today)
+                            ->where('end_time', '<', $nowTime);
+                    });
+            })
+            ->orderBy('reservation_date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->get();
+
+        $all = Reservation::with(['cafe', 'cafeTable', 'user'])
+            ->where('user_id', $user->id)
+            ->orderBy('reservation_date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->get();
+
+        return [
+            'upcoming' => $upcoming,
+            'past' => $past,
+            'all' => $all,
+        ];
     }
 }

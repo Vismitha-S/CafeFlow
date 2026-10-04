@@ -8,6 +8,7 @@ use App\Http\Controllers\CafeTableController;
 use App\Http\Controllers\MenuCategoryController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\ReservationAvailabilityController;
+use App\Http\Controllers\ReservationController;
 
 // Public landing page
 Route::get('/', function () {
@@ -62,8 +63,11 @@ Route::middleware([
     Route::patch('/cafe-tables/{cafeTable}', [CafeTableController::class, 'update']);
     Route::delete('/cafe-tables/{cafeTable}', [CafeTableController::class, 'destroy'])->name('cafe-tables.destroy');
 
-    // Reservation Availability Routes
+    // Reservation Routes
     Route::get('/cafes/{cafe}/availability', [ReservationAvailabilityController::class, 'index'])->name('cafes.availability')->where('cafe', '[0-9]+');
+    Route::post('/cafes/{cafe}/reservations', [ReservationController::class, 'store'])->name('cafes.reservations.store')->where('cafe', '[0-9]+');
+    Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
+    Route::get('/reservations/{reservation}', [ReservationController::class, 'show'])->name('reservations.show')->where('reservation', '[0-9]+');
 
     // Menu Management Routes
     Route::get('/cafes/{cafe}/menu/categories', [MenuCategoryController::class, 'index'])->name('menu-categories.index')->where('cafe', '[0-9]+');
@@ -92,8 +96,7 @@ Route::middleware([
     Route::get('/customer/reservations/checkout', [CustomerController::class, 'checkout']);
 
     // My Reservations
-    Route::get('/reservations', [CustomerController::class, 'reservations'])->name('customer.reservations');
-    Route::get('/customer/reservations', [CustomerController::class, 'reservations']);
+    Route::get('/customer/reservations', [CustomerController::class, 'reservations'])->name('customer.reservations');
 
     // Favourites
     Route::get('/favourites', [CustomerController::class, 'favourites'])->name('customer.favourites');
