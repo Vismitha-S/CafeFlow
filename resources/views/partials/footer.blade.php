@@ -6,15 +6,9 @@
 
             {{-- Brand column --}}
             <div class="lg:col-span-1">
-                <svg class="h-8 w-auto mb-4" viewBox="0 0 240 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="4" y="16" width="28" height="24" rx="4" fill="#FFF9EB"/>
-                    <rect x="6" y="18" width="24" height="20" rx="3" fill="#E8D5BD"/>
-                    <path d="M32 22h4a6 6 0 0 1 0 12h-4" stroke="#FFF9EB" stroke-width="2.5" stroke-linecap="round"/>
-                    <path d="M12 14c0-3 2-5 0-8" stroke="#E8722A" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
-                    <path d="M18 12c0-3 2-5 0-8" stroke="#E8722A" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
-                    <path d="M24 14c0-3 2-5 0-8" stroke="#E8722A" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
-                    <text x="50" y="35" font-family="Figtree, sans-serif" font-size="26" font-weight="700" fill="#FFF9EB">Cafe<tspan fill="#E8722A">Flow</tspan></text>
-                </svg>
+                <a href="/" class="inline-block bg-cream-50/95 hover:bg-white rounded-xl px-3.5 py-2 mb-4 transition-all duration-200 shadow-sm" aria-label="CafeFlow Home">
+                    <x-cafeflow-logo class="h-8 w-auto" />
+                </a>
                 <p class="text-cream-400 text-sm leading-relaxed mb-6">
                     Discover, reserve, and enjoy the best cafes near you. CafeFlow makes cafe reservations effortless.
                 </p>

@@ -1,10 +1,8 @@
 {{-- Admin Dashboard --}}
 {{-- Displays platform-wide statistics and management shortcuts --}}
-<x-dashboard-layout>
+<x-dashboard-layout dashboard-role="admin">
     <x-slot name="title">Admin Dashboard</x-slot>
     <x-slot name="header">Admin Dashboard</x-slot>
-
-    @include('partials.dashboard-sidebar', ['dashboardRole' => 'admin'])
 
     {{-- Welcome message --}}
     <div class="mb-8">

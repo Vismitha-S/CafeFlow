@@ -3,85 +3,99 @@
 @tailwind utilities;
 
 [x-cloak] {
-    display: none;
+    display: none !important;
 }
 
-// CafeFlow custom base layer styles
 @layer base {
     html {
         scroll-behavior: smooth;
     }
 
     body {
-        @apply text-coffee-800 bg-cream-50;
+        @apply text-coffee-800 bg-cream-50 font-sans antialiased selection:bg-accent-100 selection:text-coffee-900;
     }
 }
 
-// CafeFlow reusable component styles
 @layer components {
-    // Primary CTA button used across the application
     .btn-primary {
-        @apply inline-flex items-center justify-center px-6 py-3 bg-accent-500 text-white font-semibold rounded-xl
-               hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-400 focus:ring-offset-2
-               transition-all duration-300 ease-in-out transform hover:scale-[1.02] active:scale-[0.98];
+        @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-500 text-white font-medium text-sm rounded-xl
+               hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-400/50 focus:ring-offset-2 focus:ring-offset-cream-50
+               shadow-sm transition-all duration-200 ease-out active:scale-[0.98];
     }
 
-    // Secondary outlined button for less-prominent actions
     .btn-secondary {
-        @apply inline-flex items-center justify-center px-6 py-3 bg-transparent border-2 border-coffee-800 text-coffee-800
-               font-semibold rounded-xl hover:bg-coffee-800 hover:text-white focus:outline-none focus:ring-2
-               focus:ring-coffee-400 focus:ring-offset-2 transition-all duration-300 ease-in-out;
+        @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white/80 hover:bg-white text-coffee-800
+               border border-cream-300 font-medium text-sm rounded-xl hover:border-coffee-400 focus:outline-none
+               focus:ring-2 focus:ring-coffee-400/30 transition-all duration-200 ease-out;
     }
 
-    // Cafe card component with lift-on-hover effect
+    .btn-ghost {
+        @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-coffee-600 hover:text-coffee-900
+               hover:bg-cream-100/70 font-medium text-sm rounded-xl transition-all duration-200 ease-out;
+    }
+
     .cafe-card {
-        @apply bg-white rounded-2xl shadow-sm border border-cream-200 overflow-hidden
-               transition-all duration-300 ease-in-out hover:shadow-lg hover:-translate-y-1;
+        @apply bg-white rounded-2xl border border-cream-200/80 overflow-hidden shadow-subtle
+               transition-all duration-300 ease-out hover:shadow-card-hover hover:-translate-y-1 hover:border-cream-300;
     }
 
-    // Dashboard stat card with subtle hover interaction
     .dashboard-card {
-        @apply bg-white rounded-2xl shadow-sm border border-cream-200 p-6
-               transition-all duration-300 hover:shadow-md hover:border-accent-200;
+        @apply bg-white rounded-2xl border border-cream-200/80 p-6 shadow-subtle
+               transition-all duration-200 ease-out hover:border-cream-300;
     }
 
-    // Section heading with decorative styling
+    .glass-card {
+        background-color: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(239, 231, 220, 0.85);
+        box-shadow: 0 4px 20px -2px rgba(43, 30, 22, 0.05);
+    }
+
+    .glass-card-warm {
+        background-color: rgba(250, 247, 242, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(228, 216, 200, 0.8);
+        box-shadow: 0 8px 30px -4px rgba(43, 30, 22, 0.06);
+    }
+
     .section-heading {
-        @apply font-display text-3xl md:text-4xl font-bold text-coffee-800 tracking-tight;
+        @apply font-serif text-2xl md:text-3xl font-bold text-coffee-900 tracking-tight;
     }
 
-    // Subtle label/tag component
     .badge {
-        @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+        @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium tracking-wide;
     }
 
     .badge-accent {
-        @apply badge bg-accent-50 text-accent-700;
+        @apply badge bg-accent-50 text-accent-700 border border-accent-200/60;
     }
 
     .badge-coffee {
-        @apply badge bg-coffee-50 text-coffee-700;
+        @apply badge bg-cream-100 text-coffee-700 border border-cream-200;
+    }
+
+    .badge-sage {
+        @apply badge bg-sage-50 text-sage-700 border border-sage-200/60;
+    }
+
+    .badge-brass {
+        @apply badge bg-brass-50 text-brass-700 border border-brass-200/60;
     }
 }
 
-// Intersection Observer scroll-reveal animation classes
-@layer utilities {
-    // Elements start hidden, then revealed by JS scroll observer
-    .scroll-reveal {
-        opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-    }
-
-    .scroll-reveal.revealed {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    // Stagger delay classes for sequential reveal effects
-    .delay-100 { transition-delay: 100ms; }
-    .delay-200 { transition-delay: 200ms; }
-    .delay-300 { transition-delay: 300ms; }
-    .delay-400 { transition-delay: 400ms; }
-    .delay-500 { transition-delay: 500ms; }
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #FAF7F2;
+}
+::-webkit-scrollbar-thumb {
+    background: #D5C4AF;
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #AE957B;
 }

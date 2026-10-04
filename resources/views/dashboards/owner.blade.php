@@ -1,10 +1,8 @@
 {{-- Owner Dashboard --}}
 {{-- Displays cafe-specific statistics and management tools --}}
-<x-dashboard-layout>
+<x-dashboard-layout dashboard-role="owner">
     <x-slot name="title">Owner Dashboard</x-slot>
     <x-slot name="header">Owner Dashboard</x-slot>
-
-    @include('partials.dashboard-sidebar', ['dashboardRole' => 'owner'])
 
     {{-- Welcome message --}}
     <div class="mb-8">

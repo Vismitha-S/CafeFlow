@@ -1,0 +1,20 @@
+<?php
+
+namespace App\View\Components;
+
+use Illuminate\View\Component;
+use Illuminate\View\View;
+
+class DashboardLayout extends Component
+{
+    // Role-specific navigation indicator for the dashboard sidebar
+    public function __construct(
+        public string $dashboardRole = 'customer'
+    ) {}
+
+    // Get the view / contents that represents the component.
+    public function render(): View
+    {
+        return view('layouts.dashboard');
+    }
+}
