@@ -1,14 +1,14 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
-use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CafeController;
 use App\Http\Controllers\CafeTableController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\MenuCategoryController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\ReservationAvailabilityController;
 use App\Http\Controllers\ReservationController;
+use Illuminate\Support\Facades\Route;
 
 // Public landing page
 Route::get('/', function () {
@@ -29,6 +29,7 @@ Route::middleware([
         } elseif ($user->isOwner()) {
             return redirect()->route('owner.dashboard');
         }
+
         return redirect()->route('customer.dashboard');
     })->name('dashboard');
 
@@ -67,6 +68,8 @@ Route::middleware([
     Route::get('/cafes/{cafe}/availability', [ReservationAvailabilityController::class, 'index'])->name('cafes.availability')->where('cafe', '[0-9]+');
     Route::post('/cafes/{cafe}/reservations', [ReservationController::class, 'store'])->name('cafes.reservations.store')->where('cafe', '[0-9]+');
     Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
+    Route::post('/reservations/{reservation}/deposit', [ReservationController::class, 'startDepositPayment'])->name('reservations.deposit')->where('reservation', '[0-9]+');
+    Route::post('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel')->where('reservation', '[0-9]+');
     Route::get('/reservations/{reservation}', [ReservationController::class, 'show'])->name('reservations.show')->where('reservation', '[0-9]+');
 
     // Menu Management Routes

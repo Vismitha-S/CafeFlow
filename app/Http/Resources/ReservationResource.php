@@ -57,6 +57,7 @@ class ReservationResource extends JsonResource
             'cancelled_at' => $this->cancelled_at?->toIso8601String(),
             'cancellation_reason' => $this->cancellation_reason,
             'notes' => $this->notes,
+            'payments' => $this->whenLoaded('payments', fn () => PaymentResource::collection($this->payments)),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

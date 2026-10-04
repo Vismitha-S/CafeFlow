@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreReservationRequest;
+use App\Http\Resources\PaymentResource;
 use App\Http\Resources\ReservationResource;
 use App\Models\Cafe;
 use App\Models\Reservation;
 use App\Services\CafeRepository;
+use App\Services\PaymentService;
+use App\Services\ReservationCancellationService;
 use App\Services\ReservationService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +20,9 @@ class ReservationController extends Controller
     use AuthorizesRequests;
 
     public function __construct(
-        protected ReservationService $reservationService
+        protected ReservationService $reservationService,
+        protected PaymentService $paymentService,
+        protected ReservationCancellationService $cancellationService,
     ) {}
 
     // List reservations for the authenticated user based on role
@@ -58,7 +63,7 @@ class ReservationController extends Controller
     {
         $this->authorize('view', $reservation);
 
-        $reservation->load(['cafe', 'cafeTable', 'user']);
+        $reservation->load(['cafe', 'cafeTable', 'user', 'payments']);
 
         return (new ReservationResource($reservation))->response();
     }
@@ -84,5 +89,31 @@ class ReservationController extends Controller
 
         return redirect()->route('reservations.show', $reservation->id)
             ->with('success', 'Reservation booked successfully.');
+    }
+
+    public function startDepositPayment(Reservation $reservation): JsonResponse
+    {
+        $this->authorize('pay', $reservation);
+
+        $payment = $this->paymentService->createDepositPayment($reservation);
+
+        return (new PaymentResource($payment))->response();
+    }
+
+    public function cancel(Request $request, Reservation $reservation): JsonResponse
+    {
+        $this->authorize('cancel', $reservation);
+
+        $validated = $request->validate([
+            'cancellation_reason' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $reservation = $this->cancellationService->cancelReservation(
+            $reservation,
+            $validated['cancellation_reason'] ?? null,
+        );
+        $reservation->load(['cafe', 'cafeTable', 'user', 'payments']);
+
+        return (new ReservationResource($reservation))->response();
     }
 }

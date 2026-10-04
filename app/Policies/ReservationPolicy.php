@@ -8,8 +8,12 @@ use App\Models\User;
 class ReservationPolicy
 {
     // Super-admin authorization bypass
-    public function before(User $user, string $ability): bool|null
+    public function before(User $user, string $ability): ?bool
     {
+        if ($ability === 'pay' && ! $user->isCustomer()) {
+            return false;
+        }
+
         if ($user->isAdmin()) {
             return true;
         }
@@ -79,5 +83,10 @@ class ReservationPolicy
         }
 
         return false;
+    }
+
+    public function pay(User $user, Reservation $reservation): bool
+    {
+        return $user->isCustomer() && (int) $user->id === (int) $reservation->user_id;
     }
 }
