@@ -7,6 +7,7 @@ use App\Http\Controllers\CafeController;
 use App\Http\Controllers\CafeTableController;
 use App\Http\Controllers\MenuCategoryController;
 use App\Http\Controllers\MenuItemController;
+use App\Http\Controllers\ReservationAvailabilityController;
 
 // Public landing page
 Route::get('/', function () {
@@ -60,6 +61,9 @@ Route::middleware([
     Route::put('/cafe-tables/{cafeTable}', [CafeTableController::class, 'update'])->name('cafe-tables.update');
     Route::patch('/cafe-tables/{cafeTable}', [CafeTableController::class, 'update']);
     Route::delete('/cafe-tables/{cafeTable}', [CafeTableController::class, 'destroy'])->name('cafe-tables.destroy');
+
+    // Reservation Availability Routes
+    Route::get('/cafes/{cafe}/availability', [ReservationAvailabilityController::class, 'index'])->name('cafes.availability')->where('cafe', '[0-9]+');
 
     // Menu Management Routes
     Route::get('/cafes/{cafe}/menu/categories', [MenuCategoryController::class, 'index'])->name('menu-categories.index')->where('cafe', '[0-9]+');

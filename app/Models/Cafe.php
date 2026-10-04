@@ -46,4 +46,9 @@ class Cafe extends Model
     {
         return $this->hasMany(MenuItem::class);
     }
+
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class);
+    }
 }

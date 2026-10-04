@@ -100,4 +100,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Cafe::class, 'owner_id');
     }
+
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class);
+    }
 }
