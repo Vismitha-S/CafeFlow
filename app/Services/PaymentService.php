@@ -62,9 +62,12 @@ class PaymentService
         });
     }
 
-    public function markDepositAsPaid(Payment $payment): Payment
-    {
-        return DB::transaction(function () use ($payment): Payment {
+    public function markDepositAsPaid(
+        Payment $payment,
+        ?string $provider = null,
+        ?string $providerReference = null,
+    ): Payment {
+        return DB::transaction(function () use ($payment, $provider, $providerReference): Payment {
             $paymentReservationId = Payment::query()->whereKey($payment->getKey())->value('reservation_id');
 
             if ($paymentReservationId === null) {
@@ -112,12 +115,22 @@ class PaymentService
                 ]);
             }
 
-            $lockedPayment->forceFill([
+            $paymentAttributes = [
                 'status' => Payment::STATUS_PAID,
                 'paid_at' => now(),
                 'failed_at' => null,
                 'failure_reason' => null,
-            ])->save();
+            ];
+
+            if ($provider !== null) {
+                $paymentAttributes['provider'] = $provider;
+            }
+
+            if ($providerReference !== null) {
+                $paymentAttributes['provider_reference'] = $providerReference;
+            }
+
+            $lockedPayment->forceFill($paymentAttributes)->save();
 
             $reservation->forceFill(['status' => 'confirmed'])->save();
 

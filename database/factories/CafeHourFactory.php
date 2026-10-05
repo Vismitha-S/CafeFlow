@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Cafe;
 use App\Models\CafeHour;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,7 +19,7 @@ class CafeHourFactory extends Factory
     public function definition(): array
     {
         return [
-            'cafe_id' => \App\Models\Cafe::factory(),
+            'cafe_id' => Cafe::factory(),
             'day_of_week' => $this->faker->numberBetween(1, 7),
             'opens_at' => '08:00:00',
             'closes_at' => '17:00:00',

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive'])->default('active')->index();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index('cafe_id');
             $table->index('sort_order');
             $table->unique(['cafe_id', 'name', 'deleted_at']); // Optional depending on requirements, but requirement says "category names should be unique within the same cafe where appropriate". A unique index considering soft deletes usually includes deleted_at or we do it logically. Let's just do unique on cafe_id and name.

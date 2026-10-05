@@ -4,12 +4,17 @@
 
     <div class="space-y-8" x-data="{
         activeTab: 'tables', // Default to tables as shown in reference panel 3
-        selectedDate: '2026-10-04',
-        displayDate: 'Fri, Oct 4, 2026',
-        selectedTime: '10:30 AM',
-        selectedGuests: '2 Guests',
+        selectedDate: @js($selectedDate),
+        selectedTime: @js($selectedTime),
+        selectedGuests: @js($selectedGuestsLabel),
         selectedTableFilter: 'all',
-        selectedTable: {{ json_encode($tables[1] ?? $tables[0]) }},
+        selectedTable: @js($initialSelectedTable),
+        availableTableIds: @js($availableTableIds),
+        timeSlots: @js($availableTimeSlots),
+        availabilityUrl: @js($availabilityUrl),
+        availabilityMessage: @js($availabilityMessage),
+        availabilityLoading: false,
+        availabilityRequest: 0,
         isFavourite: {{ $cafe['is_favourite'] ? 'true' : 'false' }},
 
         // Food ordering state matching reference panel 5
@@ -51,6 +56,126 @@
         },
         get orderSubtotal() {
             return this.orderItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        },
+        init() {
+            this.$watch('selectedDate', () => this.refreshTimeSlots());
+            this.$watch('selectedGuests', () => this.refreshTimeSlots());
+        },
+        isTableAvailable(tableId) {
+            return this.availableTableIds.includes(Number(tableId));
+        },
+        selectTable(table) {
+            if (!this.availabilityLoading && this.isTableAvailable(table.id)) {
+                this.selectedTable = table;
+            }
+        },
+        async refreshTimeSlots() {
+            if (!this.availabilityUrl) {
+                this.availableTableIds = [];
+                this.timeSlots = [];
+                this.selectedTable = null;
+                return;
+            }
+
+            const requestId = ++this.availabilityRequest;
+            this.availabilityLoading = true;
+            this.availabilityMessage = '';
+            const query = new URLSearchParams({
+                date: this.selectedDate,
+                guests: String(parseInt(this.selectedGuests, 10)),
+                slots: '1',
+            });
+
+            try {
+                const response = await fetch(`${this.availabilityUrl}?${query}`, {
+                    headers: { Accept: 'application/json' },
+                    credentials: 'same-origin',
+                });
+                const result = await response.json();
+
+                if (requestId !== this.availabilityRequest) return;
+
+                if (!response.ok) {
+                    this.timeSlots = [];
+                    this.availableTableIds = [];
+                    this.selectedTable = null;
+                    this.availabilityMessage = Object.values(result.errors || {}).flat()[0]
+                        || result.message
+                        || 'Availability could not be checked. Please try another time.';
+                } else {
+                    this.timeSlots = result.time_slots;
+
+                    if (this.timeSlots.length === 0) {
+                        this.availableTableIds = [];
+                        this.selectedTable = null;
+                        this.availabilityMessage = 'No tables are available for the selected date, time, and guest count.';
+                    } else {
+                        if (!this.timeSlots.some(slot => slot.value === this.selectedTime)) {
+                            this.selectedTime = this.timeSlots[0].value;
+                        }
+
+                        await this.refreshTableAvailability();
+                    }
+                }
+            } catch {
+                if (requestId === this.availabilityRequest) {
+                    this.timeSlots = [];
+                    this.availableTableIds = [];
+                    this.selectedTable = null;
+                    this.availabilityMessage = 'Availability could not be checked. Please try again.';
+                }
+            } finally {
+                if (requestId === this.availabilityRequest) {
+                    this.availabilityLoading = false;
+                }
+            }
+        },
+        async refreshTableAvailability() {
+            if (!this.availabilityUrl || !this.selectedTime) return;
+
+            const requestId = ++this.availabilityRequest;
+            this.availabilityLoading = true;
+            const query = new URLSearchParams({
+                date: this.selectedDate,
+                time: this.selectedTime,
+                guests: String(parseInt(this.selectedGuests, 10)),
+            });
+
+            try {
+                const response = await fetch(`${this.availabilityUrl}?${query}`, {
+                    headers: { Accept: 'application/json' },
+                    credentials: 'same-origin',
+                });
+                const result = await response.json();
+
+                if (requestId !== this.availabilityRequest) return;
+
+                if (!response.ok) {
+                    this.availableTableIds = [];
+                    this.availabilityMessage = Object.values(result.errors || {}).flat()[0]
+                        || result.message
+                        || 'Availability could not be checked. Please try another time.';
+                } else {
+                    this.availableTableIds = result.available_tables.map(table => Number(table.id));
+                    this.availabilityMessage = this.availableTableIds.length
+                        ? ''
+                        : 'No tables are available for the selected date, time, and guest count.';
+                }
+
+                if (this.selectedTable && !this.isTableAvailable(this.selectedTable.id)) {
+                    this.selectedTable = null;
+                }
+            } catch {
+                if (requestId === this.availabilityRequest) {
+                    this.availableTableIds = [];
+                    this.selectedTable = null;
+                    this.availabilityMessage = 'Availability could not be checked. Please try again.';
+                }
+            } finally {
+                if (requestId === this.availabilityRequest) {
+                    this.availabilityLoading = false;
+                }
+            }
         }
     }">
 
@@ -262,9 +387,9 @@
                     {{-- Date Picker --}}
                     <div>
                         <label class="block text-xs font-semibold text-coffee-700 mb-1.5">Date</label>
-                        <div class="relative">
-                            <input type="text"
-                                   x-model="displayDate"
+                                <div class="relative">
+                                    <input type="date"
+                                           x-model="selectedDate"
                                    class="w-full bg-white text-xs sm:text-sm text-coffee-800 font-medium rounded-xl border border-cream-200/90 py-2.5 px-3 focus:ring-2 focus:ring-accent-400/20">
                         </div>
                     </div>
@@ -272,15 +397,10 @@
                     {{-- Time Picker --}}
                     <div>
                         <label class="block text-xs font-semibold text-coffee-700 mb-1.5">Time</label>
-                        <select x-model="selectedTime" class="w-full bg-white text-xs sm:text-sm text-coffee-800 font-medium rounded-xl border border-cream-200/90 py-2.5 px-3 focus:ring-2 focus:ring-accent-400/20">
-                            <option>09:30 AM</option>
-                            <option>10:00 AM</option>
-                            <option>10:30 AM</option>
-                            <option>11:00 AM</option>
-                            <option>02:00 PM</option>
-                            <option>04:30 PM</option>
-                            <option>06:00 PM</option>
-                            <option>07:30 PM</option>
+                        <select x-model="selectedTime" @change="refreshTableAvailability()" :disabled="availabilityLoading || timeSlots.length === 0" class="w-full bg-white text-xs sm:text-sm text-coffee-800 font-medium rounded-xl border border-cream-200/90 py-2.5 px-3 focus:ring-2 focus:ring-accent-400/20">
+                            @foreach($availableTimeSlots as $timeSlot)
+                                <option value="{{ $timeSlot['value'] }}">{{ $timeSlot['label'] }}</option>
+                            @endforeach
                         </select>
                     </div>
 
@@ -331,9 +451,10 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 @foreach($tables as $table)
                     <div x-show="selectedTableFilter === 'all' || selectedTableFilter === '{{ $table['category'] }}'"
-                         @click="selectedTable = {{ json_encode($table) }}"
+                        @click="selectTable({{ json_encode($table) }})"
                          class="cursor-pointer rounded-2xl bg-white border overflow-hidden shadow-subtle transition-all duration-200 flex flex-col justify-between"
-                         :class="selectedTable && selectedTable.id === {{ $table['id'] }} ? 'border-accent-500 ring-2 ring-accent-400/30 shadow-card-hover -translate-y-1' : 'border-cream-200 hover:border-cream-300 hover:shadow-card'">
+                        :class="!isTableAvailable({{ $table['id'] }}) ? 'cursor-not-allowed opacity-60 border-cream-200' : (selectedTable && selectedTable.id === {{ $table['id'] }} ? 'border-accent-500 ring-2 ring-accent-400/30 shadow-card-hover -translate-y-1' : 'border-cream-200 hover:border-cream-300 hover:shadow-card')"
+                        :aria-disabled="!isTableAvailable({{ $table['id'] }})">
 
                         <div>
                             {{-- Table Photo --}}
@@ -367,32 +488,29 @@
                         {{-- Table Footer with Availability Badge --}}
                         <div class="px-4 pb-4 pt-1 flex items-center justify-between border-t border-cream-50">
                             @if($table['status'] === 'available')
-                                <span class="badge-sage text-[11px]">
+                                    <span x-show="isTableAvailable({{ $table['id'] }})" class="badge-sage text-[11px]">
                                     <span class="w-1.5 h-1.5 rounded-full bg-sage-500 animate-pulse"></span>
-                                    <span>Available</span>
-                                </span>
-                            @elseif($table['status'] === 'almost_full')
-                                <span class="badge bg-amber-50 text-amber-700 border border-amber-200/60 text-[11px]">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                    <span>Almost full</span>
+                                        <span x-text="availabilityLoading ? 'Checking...' : 'Available'">Available</span>
                                 </span>
                             @else
-                                <span class="badge bg-rose-50 text-rose-700 border border-rose-200/60 text-[11px]">
-                                    <span>Unavailable</span>
-                                </span>
+                                    <span x-show="!isTableAvailable({{ $table['id'] }})" class="badge bg-rose-50 text-rose-700 border border-rose-200/60 text-[11px]">
+                                        <span x-text="availabilityLoading ? 'Checking...' : 'Unavailable'">Unavailable</span>
+                                    </span>
                             @endif
 
                             <span class="text-xs font-semibold"
-                                  :class="selectedTable && selectedTable.id === {{ $table['id'] }} ? 'text-accent-600 font-bold' : 'text-coffee-400'">
-                                <span x-text="selectedTable && selectedTable.id === {{ $table['id'] }} ? 'Selected' : 'Select'"></span>
+                                                                    :class="selectedTable && selectedTable.id === {{ $table['id'] }} ? 'text-accent-600 font-bold' : 'text-coffee-400'">
+                                                                <span x-text="selectedTable && selectedTable.id === {{ $table['id'] }} ? 'Selected' : (isTableAvailable({{ $table['id'] }}) ? 'Select' : 'Unavailable')"></span>
                             </span>
                         </div>
                     </div>
                 @endforeach
             </div>
 
-            {{-- Floating / Sticky Proceed to Reservation Checkout Bar --}}
-            <div x-show="selectedTable"
+              @if($canReserve)
+              {{-- Floating / Sticky Proceed to Reservation Checkout Bar --}}
+              <div x-show="selectedTable && !availabilityLoading && isTableAvailable(selectedTable.id)"
+                  x-cloak
                  x-transition
                  class="glass-card-warm rounded-3xl p-5 sm:p-6 border border-cream-300 shadow-card flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
@@ -415,12 +533,21 @@
                     </div>
                 </div>
 
-                <a :href="'{{ route('customer.reservation.checkout') }}?cafe={{ $cafe['slug'] }}&table=' + (selectedTable ? selectedTable.id : 2) + '&date=' + encodeURIComponent(displayDate) + '&time=' + encodeURIComponent(selectedTime) + '&guests=' + encodeURIComponent(selectedGuests)"
+                <a :href="'{{ route('customer.reservation.checkout') }}?cafe={{ $cafe['slug'] }}&table=' + selectedTable.id + '&date=' + encodeURIComponent(selectedDate) + '&time=' + encodeURIComponent(selectedTime) + '&guests=' + encodeURIComponent(selectedGuests)"
                    class="btn-primary py-3 px-8 text-sm font-semibold tracking-tight shadow-sm shrink-0 w-full sm:w-auto text-center">
                     <span>Proceed to Reservation</span>
                     <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </a>
             </div>
+            @endif
+
+            @if(!$canReserve)
+                <p class="text-xs text-coffee-500">Table reservations are not available for this cafe right now.</p>
+            @else
+                <div x-show="!availabilityLoading && availableTableIds.length === 0" x-cloak role="status" class="text-xs text-coffee-500">
+                    <span x-text="availabilityMessage || 'No tables are available for the selected date, time, and guest count.'"></span>
+                </div>
+            @endif
         </div>
 
         {{-- TAB 3: MENU & FOOD ORDERING (Matches Reference Panel 5) --}}

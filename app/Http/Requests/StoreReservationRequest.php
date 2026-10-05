@@ -60,7 +60,7 @@ class StoreReservationRequest extends FormRequest
             'cafe_table_id' => ['required', 'integer', 'exists:cafe_tables,id'],
             'reservation_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'start_time' => ['required', 'date_format:H:i'],
-            'guest_count' => ['required', 'integer', 'min:' . $minGuests, 'max:' . $maxGuests],
+            'guest_count' => ['required', 'integer', 'min:'.$minGuests, 'max:'.$maxGuests],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }

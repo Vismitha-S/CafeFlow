@@ -30,6 +30,9 @@ return new class extends Migration
             $table->string('type');
             $table->string('status')->default('pending');
             $table->decimal('amount', 12, 2);
+            $table->string('currency', 3)->default('LKR');
+            $table->string('provider')->nullable();
+            $table->string('provider_reference')->nullable();
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('failed_at')->nullable();
             $table->text('failure_reason')->nullable();
@@ -45,6 +48,18 @@ return new class extends Migration
         $existingColumns = Schema::getColumnListing('payments');
 
         Schema::table('payments', function (Blueprint $table) use ($existingColumns): void {
+            if (! in_array('currency', $existingColumns, true)) {
+                $table->string('currency', 3)->default('LKR');
+            }
+
+            if (! in_array('provider', $existingColumns, true)) {
+                $table->string('provider')->nullable();
+            }
+
+            if (! in_array('provider_reference', $existingColumns, true)) {
+                $table->string('provider_reference')->nullable();
+            }
+
             if (! in_array('refund_of_payment_id', $existingColumns, true)) {
                 $table->foreignId('refund_of_payment_id')
                     ->nullable()
@@ -69,14 +84,7 @@ return new class extends Migration
         }
 
         $existingColumns = Schema::getColumnListing('payments');
-        $legacyColumns = [
-            'currency',
-            'provider',
-            'provider_reference',
-            'refunded_at',
-            'refund_amount',
-            'metadata',
-        ];
+        $legacyColumns = ['refunded_at', 'refund_amount', 'metadata'];
         $hasPreexistingPaymentSchema = count(array_intersect($legacyColumns, $existingColumns)) > 0;
 
         if (! $hasPreexistingPaymentSchema) {

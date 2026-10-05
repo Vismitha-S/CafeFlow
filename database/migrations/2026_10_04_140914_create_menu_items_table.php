@@ -24,7 +24,7 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive'])->default('active')->index();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index('cafe_id');
             $table->index('menu_category_id');
         });

@@ -21,8 +21,7 @@
                 @auth
                     <a href="{{ route('dashboard') }}" class="text-sm font-medium text-coffee-700 hover:text-accent-500 transition-colors duration-200">Dashboard</a>
                 @else
-                    <a href="{{ route('login') }}" class="text-sm font-medium text-coffee-700 hover:text-accent-500 transition-colors duration-200">Login</a>
-                    <a href="{{ route('register') }}" class="btn-primary text-sm !py-2.5 !px-5">Get Started</a>
+                    <a href="{{ route('login') }}" class="btn-primary text-sm !py-2.5 !px-5">Login</a>
                 @endauth
             </div>
 
@@ -61,8 +60,7 @@
                 @auth
                     <a href="{{ route('dashboard') }}" class="block px-4 py-2.5 rounded-xl text-sm font-medium text-accent-600 hover:bg-accent-50 transition-colors duration-200">Dashboard</a>
                 @else
-                    <a href="{{ route('login') }}" class="block px-4 py-2.5 rounded-xl text-sm font-medium text-coffee-700 hover:bg-cream-200 transition-colors duration-200">Login</a>
-                    <a href="{{ route('register') }}" class="block px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-accent-500 hover:bg-accent-600 text-center transition-colors duration-200">Get Started</a>
+                    <a href="{{ route('login') }}" class="block px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-accent-500 hover:bg-accent-600 text-center transition-colors duration-200">Login</a>
                 @endauth
             </div>
         </div>

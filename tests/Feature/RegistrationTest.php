@@ -50,4 +50,30 @@ class RegistrationTest extends TestCase
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false));
     }
+
+    public function test_new_users_can_register_as_owner_and_redirected_to_onboarding(): void
+    {
+        if (! Features::enabled(Features::registration())) {
+            $this->markTestSkipped('Registration support is not enabled.');
+        }
+
+        $response = $this->post('/register', [
+            'name' => 'Cafe Owner User',
+            'email' => 'newowner@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'owner',
+            'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature(),
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
+
+        // When redirected to /dashboard, an owner without a cafe is redirected to owner.cafe.create
+        $dashboardResponse = $this->get('/dashboard');
+        $dashboardResponse->assertRedirect(route('owner.dashboard'));
+
+        $ownerDashboardResponse = $this->get(route('owner.dashboard'));
+        $ownerDashboardResponse->assertRedirect(route('owner.cafe.create'));
+    }
 }

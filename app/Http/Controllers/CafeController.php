@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cafe;
 use App\Http\Requests\StoreCafeRequest;
 use App\Http\Requests\UpdateCafeRequest;
+use App\Models\Cafe;
 use App\Services\CafeService;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class CafeController extends Controller
 {
@@ -23,7 +23,7 @@ class CafeController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        
+
         $this->authorize('viewAny', Cafe::class);
 
         $query = Cafe::query()->with('hours');
@@ -44,6 +44,7 @@ class CafeController extends Controller
     {
         $this->authorize('view', $cafe);
         $cafe->load('hours');
+
         return response()->json($cafe);
     }
 

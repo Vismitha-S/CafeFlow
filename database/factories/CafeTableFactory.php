@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Cafe;
 use App\Models\CafeTable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,9 +19,9 @@ class CafeTableFactory extends Factory
     public function definition(): array
     {
         return [
-            'cafe_id' => \App\Models\Cafe::factory(),
+            'cafe_id' => Cafe::factory(),
             'table_number' => $this->faker->unique()->numerify('T-####'),
-            'name' => $this->faker->word() . ' Table',
+            'name' => $this->faker->word().' Table',
             'capacity' => $this->faker->numberBetween(1, 10),
             'location' => 'indoor',
             'status' => 'active',

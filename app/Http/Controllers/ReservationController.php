@@ -7,13 +7,16 @@ use App\Http\Resources\PaymentResource;
 use App\Http\Resources\ReservationResource;
 use App\Models\Cafe;
 use App\Models\Reservation;
+use App\Notifications\NewReservationNotification;
 use App\Services\CafeRepository;
+use App\Services\DecimalMoney;
 use App\Services\PaymentService;
 use App\Services\ReservationCancellationService;
 use App\Services\ReservationService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReservationController extends Controller
 {
@@ -73,18 +76,43 @@ class ReservationController extends Controller
     {
         $this->authorize('create', Reservation::class);
 
-        $reservation = $this->reservationService->createReservation(
-            $request->user(),
-            $cafe,
-            $request->validated()
-        );
+        $validated = $request->validated();
+        $checkoutFlow = $request->input('_checkout') === '1';
 
-        $reservation->load(['cafe', 'cafeTable', 'user']);
+        $reservation = DB::transaction(function () use ($request, $cafe, $validated, $checkoutFlow): Reservation {
+            $reservation = $this->reservationService->createReservation(
+                $request->user(),
+                $cafe,
+                $validated,
+            );
+
+            if (
+                $checkoutFlow
+                && DecimalMoney::toMinorUnits((string) $reservation->reservation_fee) > 0
+            ) {
+                $this->paymentService->createDepositPayment($reservation);
+            }
+
+            return $reservation;
+        });
+
+        $reservation->load(['cafe.owner', 'cafeTable', 'user', 'payments']);
+
+        if ($reservation->cafe && $reservation->cafe->owner) {
+            $reservation->cafe->owner->notify(new NewReservationNotification($reservation));
+        }
 
         if ($request->wantsJson()) {
             return (new ReservationResource($reservation))
                 ->response()
                 ->setStatusCode(201);
+        }
+
+        if ($checkoutFlow) {
+            return redirect()
+                ->route('customer.reservation.checkout', ['reservation' => $reservation->id])
+                ->with('reservation_created', true)
+                ->with('show_payment_form', DecimalMoney::toMinorUnits((string) $reservation->reservation_fee) > 0);
         }
 
         return redirect()->route('reservations.show', $reservation->id)

@@ -94,8 +94,8 @@ class CafeRepository
                 'cuisine' => 'Ceylon Artisanal Coffee & French Desserts',
                 'reservation_fee' => 400,
                 'cancellation_window_hours' => 3,
-                'cancellation_penalty_percentage' => 40,
-                'cancellation_policy' => 'Full refund when cancelled 3 hours in advance. 40% fee applies for last-minute cancellations.',
+                'cancellation_penalty_percentage' => 50,
+                'cancellation_policy' => 'A 50% cancellation fee may apply to the reservation deposit. The remaining eligible amount will be refunded according to the cancellation policy.',
             ],
             [
                 'id' => 3,
@@ -270,7 +270,7 @@ class CafeRepository
             }
         }
 
-        return self::all()[0] ?? null;
+        return null;
     }
 
     // Get tables for a cafe
@@ -441,7 +441,7 @@ class CafeRepository
                 'reservation_fee' => 500,
                 'paid_amount' => 500,
                 'remaining_balance' => 0,
-                'cancellation_policy' => 'Free cancellation before 8:30 AM tomorrow. 50% fee applies afterwards.',
+                'cancellation_policy' => 'A 50% cancellation fee will be deducted upon cancellation. The remaining balance will be refunded.',
                 'cancellation_allowed' => true,
             ],
             [
@@ -462,7 +462,7 @@ class CafeRepository
                 'reservation_fee' => 400,
                 'paid_amount' => 400,
                 'remaining_balance' => 0,
-                'cancellation_policy' => 'Free cancellation until 11:00 AM on booking date. 40% late fee applies afterwards.',
+                'cancellation_policy' => 'A 50% cancellation fee will be deducted upon cancellation. The remaining balance will be refunded.',
                 'cancellation_allowed' => true,
             ],
             [
@@ -483,7 +483,7 @@ class CafeRepository
                 'reservation_fee' => 600,
                 'paid_amount' => 600,
                 'remaining_balance' => 0,
-                'cancellation_policy' => 'Free cancellation before 7:00 AM on booking date. 50% late fee applies afterwards.',
+                'cancellation_policy' => 'A 50% cancellation fee will be deducted upon cancellation. The remaining balance will be refunded.',
                 'cancellation_allowed' => true,
             ],
             [
@@ -521,11 +521,11 @@ class CafeRepository
                 'table_location' => 'Indoor',
                 'status' => 'cancelled',
                 'status_label' => 'Cancelled',
-                'payment_status' => 'Refunded (100%)',
+                'payment_status' => 'Refunded (50%)',
                 'reservation_fee' => 350,
                 'paid_amount' => 350,
                 'remaining_balance' => 0,
-                'cancellation_policy' => 'Cancelled on Sep 13 with full refund processed to payment card.',
+                'cancellation_policy' => 'Cancelled with 50% fee deducted. Remaining 50% refunded to payment card.',
                 'cancellation_allowed' => false,
             ],
         ];

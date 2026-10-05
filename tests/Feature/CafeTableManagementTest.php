@@ -74,7 +74,7 @@ class CafeTableManagementTest extends TestCase
         $table = CafeTable::factory()->create(['cafe_id' => $cafe->id]);
 
         $response = $this->actingAs($owner)->putJson("/cafe-tables/{$table->id}", $this->validTableData([
-            'table_number' => 'Updated-T1'
+            'table_number' => 'Updated-T1',
         ]));
 
         $response->assertStatus(200);
@@ -137,7 +137,7 @@ class CafeTableManagementTest extends TestCase
 
         // Update
         $response = $this->actingAs($admin)->putJson("/cafe-tables/{$table->id}", $this->validTableData([
-            'table_number' => 'Admin-T1'
+            'table_number' => 'Admin-T1',
         ]));
         $response->assertStatus(200);
 
@@ -188,7 +188,7 @@ class CafeTableManagementTest extends TestCase
         CafeTable::factory()->create(['cafe_id' => $cafe->id, 'table_number' => 'T1']);
 
         $response = $this->actingAs($owner)->postJson("/cafes/{$cafe->id}/tables", $this->validTableData([
-            'table_number' => 'T1'
+            'table_number' => 'T1',
         ]));
 
         $response->assertStatus(422);
@@ -198,13 +198,13 @@ class CafeTableManagementTest extends TestCase
     public function test_same_table_number_in_different_cafes_is_allowed()
     {
         $owner = User::factory()->create(['role' => 'owner']);
-        
+
         $cafe1 = Cafe::factory()->create(['owner_id' => $owner->id]);
         CafeTable::factory()->create(['cafe_id' => $cafe1->id, 'table_number' => 'T1']);
 
         $cafe2 = Cafe::factory()->create(['owner_id' => $owner->id]);
         $response = $this->actingAs($owner)->postJson("/cafes/{$cafe2->id}/tables", $this->validTableData([
-            'table_number' => 'T1'
+            'table_number' => 'T1',
         ]));
 
         $response->assertStatus(201);
@@ -216,7 +216,7 @@ class CafeTableManagementTest extends TestCase
         $cafe = Cafe::factory()->create(['owner_id' => $owner->id]);
 
         $response = $this->actingAs($owner)->postJson("/cafes/{$cafe->id}/tables", $this->validTableData([
-            'capacity' => 0
+            'capacity' => 0,
         ]));
 
         $response->assertStatus(422);
@@ -229,7 +229,7 @@ class CafeTableManagementTest extends TestCase
         $cafe = Cafe::factory()->create(['owner_id' => $owner->id]);
 
         $response = $this->actingAs($owner)->postJson("/cafes/{$cafe->id}/tables", $this->validTableData([
-            'capacity' => 1000 // Above reasonable max 50
+            'capacity' => 1000, // Above reasonable max 50
         ]));
 
         $response->assertStatus(422);
@@ -242,7 +242,7 @@ class CafeTableManagementTest extends TestCase
         $cafe = Cafe::factory()->create(['owner_id' => $owner->id]);
 
         $response = $this->actingAs($owner)->postJson("/cafes/{$cafe->id}/tables", $this->validTableData([
-            'location' => 'roof'
+            'location' => 'roof',
         ]));
 
         $response->assertStatus(422);
@@ -255,7 +255,7 @@ class CafeTableManagementTest extends TestCase
         $cafe = Cafe::factory()->create(['owner_id' => $owner->id]);
 
         $response = $this->actingAs($owner)->postJson("/cafes/{$cafe->id}/tables", $this->validTableData([
-            'status' => 'broken'
+            'status' => 'broken',
         ]));
 
         $response->assertStatus(422);
@@ -266,9 +266,9 @@ class CafeTableManagementTest extends TestCase
     {
         $owner1 = User::factory()->create(['role' => 'owner']);
         $owner2 = User::factory()->create(['role' => 'owner']);
-        
+
         $cafe2 = Cafe::factory()->create(['owner_id' => $owner2->id]);
-        
+
         // Owner 1 attempts to add table to Cafe 2
         $response = $this->actingAs($owner1)->postJson("/cafes/{$cafe2->id}/tables", $this->validTableData());
 
@@ -287,7 +287,7 @@ class CafeTableManagementTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $cafe = Cafe::factory()->create();
         $table = CafeTable::factory()->create(['cafe_id' => $cafe->id]);
-        
+
         $table->delete();
 
         $response = $this->actingAs($admin)->getJson("/cafe-tables/{$table->id}");

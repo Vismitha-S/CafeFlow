@@ -82,8 +82,8 @@ class ReservationAvailabilityService
             ->where('cafe_id', $cafe->id)
             ->whereDate('reservation_date', $date)
             ->whereIn('status', $blockingStatuses)
-            ->where('start_time', '<', $endTimeFormatted . ':00')
-            ->where('end_time', '>', $startTimeFormatted . ':00')
+            ->where('start_time', '<', $endTimeFormatted.':00')
+            ->where('end_time', '>', $startTimeFormatted.':00')
             ->pluck('cafe_table_id');
 
         return $cafe->tables()
@@ -93,6 +93,40 @@ class ReservationAvailabilityService
             ->orderBy('capacity', 'asc')
             ->orderBy('table_number', 'asc')
             ->get();
+    }
+
+    public function getAvailableTimeSlots(Cafe $cafe, string $date, int $guestCount): array
+    {
+        $this->validateCafeStatus($cafe);
+
+        $dayOfWeek = (int) Carbon::parse($date)->isoWeekday();
+        $hour = $cafe->hours()->where('day_of_week', $dayOfWeek)->first();
+
+        if (! $hour || $hour->is_closed || empty($hour->opens_at) || empty($hour->closes_at)) {
+            throw ValidationException::withMessages([
+                'date' => ['The cafe is closed on the selected date.'],
+            ]);
+        }
+
+        $duration = (int) config('reservations.default_duration_minutes', 90);
+        $slotStart = Carbon::parse($date.' '.$hour->opens_at);
+        $lastSlotStart = Carbon::parse($date.' '.$hour->closes_at)->subMinutes($duration);
+        $slots = [];
+
+        while ($slotStart->lte($lastSlotStart)) {
+            $startTime = $slotStart->format('H:i');
+
+            if ($this->getAvailableTables($cafe, $date, $startTime, $guestCount)->isNotEmpty()) {
+                $slots[] = [
+                    'value' => $startTime,
+                    'label' => $slotStart->format('g:i A'),
+                ];
+            }
+
+            $slotStart->addMinutes(30);
+        }
+
+        return $slots;
     }
 
     // Get formatted availability details array suitable for JSON API responses

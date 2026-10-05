@@ -521,4 +521,60 @@ class ReservationAvailabilityTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonCount(1, 'available_tables');
     }
+
+    public function test_generated_time_slots_follow_opening_hours_and_reservation_duration(): void
+    {
+        $customer = User::factory()->create(['role' => 'customer']);
+        $cafe = $this->createCafeWithHours();
+        CafeTable::factory()->create([
+            'cafe_id' => $cafe->id,
+            'status' => 'active',
+            'capacity' => 4,
+        ]);
+        $date = Carbon::parse('next monday')->toDateString();
+
+        $response = $this->actingAs($customer)->getJson("/cafes/{$cafe->id}/availability?date={$date}&guests=2&slots=1");
+
+        $response->assertOk()
+            ->assertJsonPath('requested_date', $date)
+            ->assertJsonPath('guest_count', 2)
+            ->assertJsonPath('time_slots.0.value', '08:00')
+            ->assertJsonPath('time_slots.0.label', '8:00 AM')
+            ->assertJsonPath('time_slots.21.value', '18:30')
+            ->assertJsonCount(22, 'time_slots');
+    }
+
+    public function test_generated_time_slots_exclude_conflicts_and_respect_table_capacity(): void
+    {
+        $customer = User::factory()->create(['role' => 'customer']);
+        $reservationOwner = User::factory()->create(['role' => 'customer']);
+        $cafe = $this->createCafeWithHours();
+        $table = CafeTable::factory()->create([
+            'cafe_id' => $cafe->id,
+            'table_number' => 'T-SMALL',
+            'status' => 'active',
+            'capacity' => 2,
+        ]);
+        $date = Carbon::parse('next monday')->toDateString();
+
+        Reservation::factory()->pending()->create([
+            'cafe_id' => $cafe->id,
+            'cafe_table_id' => $table->id,
+            'user_id' => $reservationOwner->id,
+            'reservation_date' => $date,
+            'start_time' => '10:00',
+            'end_time' => '11:30',
+        ]);
+
+        $response = $this->actingAs($customer)->getJson("/cafes/{$cafe->id}/availability?date={$date}&guests=2&slots=1");
+        $slotValues = array_column($response->json('time_slots'), 'value');
+
+        $response->assertOk();
+        $this->assertNotContains('10:00', $slotValues);
+        $this->assertNotContains('10:30', $slotValues);
+        $this->assertContains('11:30', $slotValues);
+
+        $capacityResponse = $this->actingAs($customer)->getJson("/cafes/{$cafe->id}/availability?date={$date}&guests=3&slots=1");
+        $capacityResponse->assertOk()->assertJsonCount(0, 'time_slots');
+    }
 }

@@ -4,11 +4,10 @@ namespace App\Policies;
 
 use App\Models\Cafe;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class CafePolicy
 {
-    public function before(User $user, string $ability): bool|null
+    public function before(User $user, string $ability): ?bool
     {
         if ($user->isAdmin()) {
             return true;
@@ -37,7 +36,12 @@ class CafePolicy
 
     public function create(User $user): bool
     {
-        return $user->isOwner(); // Admin handled by before()
+        if (! $user->isOwner()) {
+            return false;
+        }
+
+        // An owner can only create a cafe if they do not already have one
+        return ! $user->hasCafe();
     }
 
     public function update(User $user, Cafe $cafe): bool

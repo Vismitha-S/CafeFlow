@@ -4,11 +4,10 @@ namespace App\Policies;
 
 use App\Models\MenuCategory;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class MenuCategoryPolicy
 {
-    public function before(User $user, string $ability): bool|null
+    public function before(User $user, string $ability): ?bool
     {
         if ($user->isAdmin()) {
             return true;

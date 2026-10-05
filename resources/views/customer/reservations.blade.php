@@ -5,22 +5,64 @@
     <div class="space-y-10" x-data="{
         activeTab: 'upcoming',
         cancelModalOpen: false,
+        detailsModalOpen: false,
         selectedReservation: null,
         cancelConfirmed: false,
+        cancelling: false,
+        cancelError: '',
 
+        openDetailsModal(reservation) {
+            this.selectedReservation = reservation;
+            this.detailsModalOpen = true;
+        },
         openCancelModal(reservation) {
             this.selectedReservation = reservation;
+            this.detailsModalOpen = false;
             this.cancelModalOpen = true;
             this.cancelConfirmed = false;
+            this.cancelling = false;
+            this.cancelError = '';
         },
-        executeCancellation() {
-            if (this.selectedReservation) {
+        async executeCancellation() {
+            if (!this.selectedReservation || this.cancelling) return;
+            this.cancelling = true;
+            this.cancelError = '';
+
+            try {
+                if (this.selectedReservation.cancel_url) {
+                    const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '{{ csrf_token() }}';
+                    const response = await fetch(this.selectedReservation.cancel_url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': token
+                        },
+                        body: JSON.stringify({
+                            cancellation_reason: 'Customer requested cancellation'
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(data.message || 'Unable to process cancellation.');
+                    }
+                }
+
                 this.selectedReservation.status = 'cancelled';
                 this.selectedReservation.status_label = 'Cancelled';
+                this.selectedReservation.cancellation_allowed = false;
                 this.cancelConfirmed = true;
                 setTimeout(() => {
                     this.cancelModalOpen = false;
-                }, 1500);
+                    this.cancelling = false;
+                    if (this.selectedReservation.cancel_url) {
+                        window.location.reload();
+                    }
+                }, 2500);
+            } catch (err) {
+                this.cancelError = err.message || 'An error occurred while cancelling the reservation.';
+                this.cancelling = false;
             }
         }
     }">
@@ -90,7 +132,7 @@
                                 <span>•</span>
                                 <span>{{ $res['guests'] }} Guests</span>
                                 <span>•</span>
-                                <span class="font-medium text-coffee-700">Fee: LKR {{ number_format($res['reservation_fee']) }}</span>
+                                <span class="font-medium text-coffee-700">Fee: LKR {{ number_format($res['reservation_fee'], 2) }}</span>
                             </p>
                         </div>
                     </div>
@@ -122,10 +164,11 @@
 
                         {{-- Action Buttons --}}
                         <div class="flex items-center gap-2">
-                            <a href="{{ route('customer.cafe.show', $res['cafe_slug']) }}"
-                               class="btn-secondary px-3 py-1.5 text-xs font-semibold">
+                            <button type="button"
+                                    @click="openDetailsModal({{ json_encode($res) }})"
+                                    class="btn-secondary px-3 py-1.5 text-xs font-semibold">
                                 View Details
-                            </a>
+                            </button>
 
                             @if($res['cancellation_allowed'] ?? false)
                                 <button @click="openCancelModal({{ json_encode($res) }})"
@@ -173,6 +216,85 @@
             </div>
         </div>
 
+        {{-- Reservation Details Modal --}}
+        <div x-show="detailsModalOpen"
+             x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-coffee-950/60 backdrop-blur-sm">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-cream-200 shadow-2xl space-y-5 relative">
+                <button type="button" @click="detailsModalOpen = false" class="absolute top-5 right-5 p-2 rounded-full text-coffee-400 hover:text-coffee-700 hover:bg-cream-100 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+
+                <div class="flex items-center gap-4 pr-8">
+                    <div class="w-16 h-16 rounded-2xl overflow-hidden bg-cream-100 shrink-0 border border-cream-200">
+                        <img :src="selectedReservation ? selectedReservation.cafe_image : ''" :alt="selectedReservation ? selectedReservation.cafe_name : ''" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <h3 class="font-serif text-xl font-bold text-coffee-950" x-text="selectedReservation ? selectedReservation.cafe_name : ''"></h3>
+                        <p class="text-xs text-coffee-500" x-text="selectedReservation ? selectedReservation.cafe_location : ''"></p>
+                        <p class="text-[11px] text-accent-600 font-semibold mt-0.5" x-text="selectedReservation ? (selectedReservation.reference || ('#RES-' + selectedReservation.id)) : ''"></p>
+                    </div>
+                </div>
+
+                {{-- Status & Summary Grid --}}
+                <div class="grid grid-cols-2 gap-3 p-4 bg-cream-50/80 rounded-2xl border border-cream-200 text-xs">
+                    <div>
+                        <span class="text-coffee-400 text-[11px] block">Status</span>
+                        <span class="font-semibold text-coffee-900 capitalize" x-text="selectedReservation ? selectedReservation.status_label : ''"></span>
+                    </div>
+                    <div>
+                        <span class="text-coffee-400 text-[11px] block">Payment Status</span>
+                        <span class="font-semibold text-coffee-900" x-text="selectedReservation ? selectedReservation.payment_status : ''"></span>
+                    </div>
+                    <div>
+                        <span class="text-coffee-400 text-[11px] block">Date & Time</span>
+                        <span class="font-semibold text-coffee-900" x-text="selectedReservation ? (selectedReservation.date + ' • ' + selectedReservation.time) : ''"></span>
+                    </div>
+                    <div>
+                        <span class="text-coffee-400 text-[11px] block">Table & Guests</span>
+                        <span class="font-semibold text-coffee-900" x-text="selectedReservation ? (selectedReservation.table_name + ' (' + selectedReservation.guests + ' Guests)') : ''"></span>
+                    </div>
+                    <div>
+                        <span class="text-coffee-400 text-[11px] block">Reservation Fee</span>
+                        <span class="font-semibold text-accent-700" x-text="selectedReservation ? ('LKR ' + Number(selectedReservation.reservation_fee).toFixed(2)) : ''"></span>
+                    </div>
+                    <div>
+                        <span class="text-coffee-400 text-[11px] block">Paid Amount</span>
+                        <span class="font-semibold text-coffee-900" x-text="selectedReservation ? ('LKR ' + Number(selectedReservation.paid_amount || selectedReservation.reservation_fee).toFixed(2)) : ''"></span>
+                    </div>
+                </div>
+
+                {{-- Cancellation Policy Note --}}
+                <div class="p-3.5 bg-cream-100/60 rounded-2xl border border-cream-200 text-xs space-y-1">
+                    <h4 class="font-bold text-coffee-800">Cancellation Policy:</h4>
+                    <p class="text-[11px] text-coffee-600 leading-relaxed">
+                        A 50% cancellation fee will be deducted upon cancellation. The remaining 50% is refunded to your payment method.
+                    </p>
+                </div>
+
+                {{-- Modal Actions --}}
+                <div class="flex items-center justify-between pt-2">
+                    <a :href="selectedReservation ? ('/cafes/' + selectedReservation.cafe_slug) : '#'"
+                       class="text-xs font-semibold text-accent-600 hover:text-accent-700 flex items-center gap-1">
+                        <span>Visit Cafe Page</span>
+                        <span>&rarr;</span>
+                    </a>
+
+                    <div class="flex items-center gap-2">
+                        <template x-if="selectedReservation && selectedReservation.cancellation_allowed">
+                            <button @click="openCancelModal(selectedReservation)"
+                                    class="px-3.5 py-2 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-xl text-xs font-semibold transition-colors">
+                                Cancel Reservation
+                            </button>
+                        </template>
+                        <button @click="detailsModalOpen = false" class="btn-primary py-2 px-4 text-xs font-semibold">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- Dynamic Cancellation Policy Modal --}}
         <div x-show="cancelModalOpen"
              x-cloak
@@ -190,29 +312,71 @@
                         Are you sure you want to cancel your table at <strong class="text-coffee-900" x-text="selectedReservation ? selectedReservation.cafe_name : ''"></strong>?
                     </p>
 
-                    {{-- Dynamic Cafe Cancellation Policy Notice --}}
-                    <div class="p-3.5 bg-cream-50 rounded-2xl border border-cream-200 text-xs space-y-1.5">
-                        <h4 class="font-bold text-coffee-800">Applicable Cancellation Policy:</h4>
-                        <p class="text-[11px] text-coffee-600 font-sans" x-text="selectedReservation ? selectedReservation.cancellation_policy : ''"></p>
+                    {{-- Deduction and Refund Breakdown Box --}}
+                    <div class="p-4 bg-cream-50 rounded-2xl border border-cream-200 text-xs space-y-2.5">
+                        <h4 class="font-bold text-coffee-800">Cancellation Fee & Refund Summary:</h4>
+
+                        <div class="space-y-1.5 text-[11px] pt-1">
+                            <div class="flex items-center justify-between text-coffee-600">
+                                <span>Total Booking Fee Paid:</span>
+                                <span class="font-medium text-coffee-900" x-text="selectedReservation ? ('LKR ' + Number(selectedReservation.reservation_fee).toFixed(2)) : 'LKR 0.00'"></span>
+                            </div>
+                            <div class="flex items-center justify-between text-rose-700 font-medium">
+                                <span>Deduction Fee (50%):</span>
+                                <span x-text="selectedReservation ? ('- LKR ' + (Number(selectedReservation.reservation_fee) * 0.5).toFixed(2)) : '- LKR 0.00'"></span>
+                            </div>
+                            <div class="flex items-center justify-between text-sage-800 font-bold pt-1.5 border-t border-cream-200">
+                                <span>Refund to Payment Method (50%):</span>
+                                <span class="text-sage-700" x-text="selectedReservation ? ('LKR ' + (Number(selectedReservation.reservation_fee) * 0.5).toFixed(2)) : 'LKR 0.00'"></span>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-t border-cream-200/80 text-[11px] text-coffee-500 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-accent-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Upon cancellation, your table slot will immediately be released and available for others to book.</span>
+                        </div>
                     </div>
 
+                    <div x-show="cancelError" class="p-3 bg-rose-50 text-rose-700 rounded-xl text-xs" x-text="cancelError"></div>
+
                     <div class="flex items-center justify-end gap-3 pt-2">
-                        <button @click="cancelModalOpen = false" class="btn-secondary py-2 px-4 text-xs font-semibold">
+                        <button :disabled="cancelling" @click="cancelModalOpen = false" class="btn-secondary py-2 px-4 text-xs font-semibold disabled:opacity-50">
                             Keep Reservation
                         </button>
-                        <button @click="executeCancellation()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition-colors">
-                            Confirm Cancellation
+                        <button :disabled="cancelling" @click="executeCancellation()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 flex items-center gap-1.5">
+                            <span x-show="!cancelling">Confirm Cancellation</span>
+                            <span x-show="cancelling">Processing...</span>
                         </button>
                     </div>
                 </div>
 
-                {{-- Cancellation Confirmation Success --}}
-                <div x-show="cancelConfirmed" class="text-center py-4 space-y-2">
+                {{-- Cancellation Confirmation Success with Deduction and Refund --}}
+                <div x-show="cancelConfirmed" class="text-center py-4 space-y-3">
                     <div class="w-12 h-12 rounded-full bg-sage-100 text-sage-700 mx-auto flex items-center justify-center">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                     </div>
-                    <p class="text-sm font-serif font-bold text-coffee-950">Reservation Cancelled</p>
-                    <p class="text-xs text-coffee-500">Your cancellation and refund have been processed according to the cafe's policy.</p>
+                    <p class="text-base font-serif font-bold text-coffee-950">Reservation Cancelled</p>
+
+                    <div class="p-3.5 bg-cream-50 rounded-2xl border border-cream-200 text-xs space-y-1.5 text-left max-w-sm mx-auto">
+                        <div class="flex items-center justify-between text-coffee-600 text-[11px]">
+                            <span>Deduction (50% fee):</span>
+                            <span class="font-semibold text-rose-700" x-text="selectedReservation ? ('- LKR ' + (Number(selectedReservation.reservation_fee) * 0.5).toFixed(2)) : ''"></span>
+                        </div>
+                        <div class="flex items-center justify-between text-coffee-600 text-[11px]">
+                            <span>Refund Amount (50%):</span>
+                            <span class="font-semibold text-sage-700" x-text="selectedReservation ? ('LKR ' + (Number(selectedReservation.reservation_fee) * 0.5).toFixed(2)) : ''"></span>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-coffee-600 px-2 leading-relaxed">
+                        A 50% cancellation fee was deducted. Your remaining 50% refund has been processed. The table slot is now available back for booking.
+                    </p>
+
+                    <div class="pt-2">
+                        <button @click="cancelModalOpen = false; if (selectedReservation && selectedReservation.cancel_url) { window.location.reload(); }" class="btn-primary py-2 px-6 text-xs font-semibold">
+                            Done
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

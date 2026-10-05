@@ -35,7 +35,7 @@ class CafeManagementTest extends TestCase
         $owner = User::factory()->create(['role' => 'owner']);
 
         $response = $this->actingAs($admin)->postJson('/cafes', $this->validCafeData([
-            'owner_id' => $owner->id
+            'owner_id' => $owner->id,
         ]));
 
         $response->assertStatus(201);
@@ -148,7 +148,7 @@ class CafeManagementTest extends TestCase
         $customer = User::factory()->create(['role' => 'customer']);
         Cafe::factory()->create(['status' => 'active']);
 
-        $response = $this->actingAs($customer)->getJson("/cafes");
+        $response = $this->actingAs($customer)->getJson('/cafes');
 
         $response->assertStatus(200);
         $this->assertCount(1, $response->json());
@@ -160,7 +160,7 @@ class CafeManagementTest extends TestCase
         Cafe::factory()->create(['status' => 'active']);
         Cafe::factory()->create(['status' => 'inactive']);
 
-        $response = $this->actingAs($customer)->getJson("/cafes");
+        $response = $this->actingAs($customer)->getJson('/cafes');
 
         $response->assertStatus(200);
         $this->assertCount(1, $response->json());
@@ -171,7 +171,7 @@ class CafeManagementTest extends TestCase
         $owner = User::factory()->create(['role' => 'owner']);
 
         $response = $this->actingAs($owner)->postJson('/cafes', $this->validCafeData([
-            'reservation_fee' => -10
+            'reservation_fee' => -10,
         ]));
 
         $response->assertStatus(422);
@@ -183,7 +183,7 @@ class CafeManagementTest extends TestCase
         $owner = User::factory()->create(['role' => 'owner']);
 
         $response = $this->actingAs($owner)->postJson('/cafes', $this->validCafeData([
-            'cancellation_penalty_percentage' => -1
+            'cancellation_penalty_percentage' => -1,
         ]));
 
         $response->assertStatus(422);
@@ -195,7 +195,7 @@ class CafeManagementTest extends TestCase
         $owner = User::factory()->create(['role' => 'owner']);
 
         $response = $this->actingAs($owner)->postJson('/cafes', $this->validCafeData([
-            'cancellation_penalty_percentage' => 101
+            'cancellation_penalty_percentage' => 101,
         ]));
 
         $response->assertStatus(422);
@@ -208,7 +208,7 @@ class CafeManagementTest extends TestCase
         $owner = User::factory()->create(['role' => 'owner']);
 
         $response = $this->actingAs($owner)->postJson('/cafes', $this->validCafeData([
-            'slug' => 'duplicate-slug'
+            'slug' => 'duplicate-slug',
         ]));
 
         $response->assertStatus(422);
@@ -221,7 +221,7 @@ class CafeManagementTest extends TestCase
 
         $response = $this->actingAs($owner)->postJson('/cafes', $this->validCafeData([
             'latitude' => 100, // Invalid, max 90
-            'longitude' => 200 // Invalid, max 180
+            'longitude' => 200, // Invalid, max 180
         ]));
 
         $response->assertStatus(422);
@@ -239,8 +239,8 @@ class CafeManagementTest extends TestCase
                     'opens_at' => '08:00',
                     'closes_at' => '17:00',
                     'is_closed' => false,
-                ]
-            ]
+                ],
+            ],
         ]));
 
         $response->assertStatus(201);
@@ -256,8 +256,8 @@ class CafeManagementTest extends TestCase
                 [
                     'day_of_week' => 7,
                     'is_closed' => true,
-                ]
-            ]
+                ],
+            ],
         ]));
 
         $response->assertStatus(201);
@@ -275,8 +275,8 @@ class CafeManagementTest extends TestCase
                     'opens_at' => '17:00',
                     'closes_at' => '08:00', // Closes before opens
                     'is_closed' => false,
-                ]
-            ]
+                ],
+            ],
         ]));
 
         $response->assertStatus(422);
@@ -289,7 +289,7 @@ class CafeManagementTest extends TestCase
         $owner2 = User::factory()->create(['role' => 'owner']);
 
         $response = $this->actingAs($owner1)->postJson('/cafes', $this->validCafeData([
-            'owner_id' => $owner2->id
+            'owner_id' => $owner2->id,
         ]));
 
         $response->assertStatus(201);

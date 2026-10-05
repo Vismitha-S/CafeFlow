@@ -6,8 +6,16 @@ use App\Http\Controllers\CafeTableController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\MenuCategoryController;
 use App\Http\Controllers\MenuItemController;
+use App\Http\Controllers\OwnerCafeController;
+use App\Http\Controllers\OwnerDashboardController;
+use App\Http\Controllers\OwnerMenuController;
+use App\Http\Controllers\OwnerNotificationController;
+use App\Http\Controllers\OwnerReservationController;
+use App\Http\Controllers\OwnerTableController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReservationAvailabilityController;
 use App\Http\Controllers\ReservationController;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 // Public landing page
@@ -33,6 +41,28 @@ Route::middleware([
         return redirect()->route('customer.dashboard');
     })->name('dashboard');
 
+    // Role switching routes allowing users to switch between customer and owner modes
+    Route::post('/switch-to-owner', function () {
+        $user = auth()->user();
+        $user->update(['role' => User::ROLE_OWNER]);
+
+        if ($user->hasCafe()) {
+            return redirect()->route('owner.dashboard')
+                ->with('success', 'Switched to Cafe Owner portal.');
+        }
+
+        return redirect()->route('owner.cafe.create')
+            ->with('info', 'Welcome to the CafeFlow Owner Portal! Set up your cafe profile to begin receiving table reservations.');
+    })->name('switch.to.owner');
+
+    Route::post('/switch-to-customer', function () {
+        $user = auth()->user();
+        $user->update(['role' => User::ROLE_CUSTOMER]);
+
+        return redirect()->route('customer.dashboard')
+            ->with('info', 'Switched to Customer view.');
+    })->name('switch.to.customer');
+
     // Role-specific dashboard routes
     Route::middleware('role:admin')->group(function () {
         Route::get('/admin/dashboard', function () {
@@ -40,10 +70,46 @@ Route::middleware([
         })->name('admin.dashboard');
     });
 
-    Route::middleware('role:owner')->group(function () {
-        Route::get('/owner/dashboard', function () {
-            return view('dashboards.owner');
-        })->name('owner.dashboard');
+    Route::middleware('role:owner')->prefix('owner')->name('owner.')->group(function () {
+        // Dashboard
+        Route::get('/dashboard', [OwnerDashboardController::class, 'index'])->name('dashboard');
+
+        // Onboarding / Create Cafe
+        Route::get('/cafe/create', [OwnerCafeController::class, 'create'])->name('cafe.create');
+        Route::post('/cafe', [OwnerCafeController::class, 'store'])->name('cafe.store');
+
+        // My Cafe Management
+        Route::get('/cafe', [OwnerCafeController::class, 'edit'])->name('cafe.edit');
+        Route::put('/cafe', [OwnerCafeController::class, 'update'])->name('cafe.update');
+
+        // Table Management
+        Route::get('/tables', [OwnerTableController::class, 'index'])->name('tables.index');
+        Route::post('/tables', [OwnerTableController::class, 'store'])->name('tables.store');
+        Route::put('/tables/{cafeTable}', [OwnerTableController::class, 'update'])->name('tables.update');
+        Route::patch('/tables/{cafeTable}/toggle', [OwnerTableController::class, 'toggleStatus'])->name('tables.toggle');
+        Route::delete('/tables/{cafeTable}', [OwnerTableController::class, 'destroy'])->name('tables.destroy');
+
+        // Menu Management
+        Route::get('/menu', [OwnerMenuController::class, 'index'])->name('menu.index');
+        Route::post('/menu/categories', [OwnerMenuController::class, 'storeCategory'])->name('menu.categories.store');
+        Route::put('/menu/categories/{menuCategory}', [OwnerMenuController::class, 'updateCategory'])->name('menu.categories.update');
+        Route::delete('/menu/categories/{menuCategory}', [OwnerMenuController::class, 'destroyCategory'])->name('menu.categories.destroy');
+        Route::post('/menu/items', [OwnerMenuController::class, 'storeItem'])->name('menu.items.store');
+        Route::put('/menu/items/{menuItem}', [OwnerMenuController::class, 'updateItem'])->name('menu.items.update');
+        Route::patch('/menu/items/{menuItem}/toggle', [OwnerMenuController::class, 'toggleItemAvailability'])->name('menu.items.toggle');
+        Route::delete('/menu/items/{menuItem}', [OwnerMenuController::class, 'destroyItem'])->name('menu.items.destroy');
+
+        // Reservation Management
+        Route::get('/reservations', [OwnerReservationController::class, 'index'])->name('reservations.index');
+        Route::get('/reservations/{reservation}', [OwnerReservationController::class, 'show'])->name('reservations.show');
+        Route::post('/reservations/{reservation}/cancel', [OwnerReservationController::class, 'cancel'])->name('reservations.cancel');
+        Route::post('/reservations/{reservation}/complete', [OwnerReservationController::class, 'complete'])->name('reservations.complete');
+
+        // Notifications
+        Route::get('/notifications', [OwnerNotificationController::class, 'index'])->name('notifications.index');
+        Route::get('/notifications/recent', [OwnerNotificationController::class, 'recent'])->name('notifications.recent');
+        Route::post('/notifications/{id}/read', [OwnerNotificationController::class, 'markAsRead'])->name('notifications.read');
+        Route::post('/notifications/read-all', [OwnerNotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     });
 
     Route::get('/customer/dashboard', [CustomerController::class, 'home'])->name('customer.dashboard');
@@ -69,6 +135,7 @@ Route::middleware([
     Route::post('/cafes/{cafe}/reservations', [ReservationController::class, 'store'])->name('cafes.reservations.store')->where('cafe', '[0-9]+');
     Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
     Route::post('/reservations/{reservation}/deposit', [ReservationController::class, 'startDepositPayment'])->name('reservations.deposit')->where('reservation', '[0-9]+');
+    Route::post('/reservations/{reservation}/payments/{payment}/demo-confirmation', [PaymentController::class, 'confirmDemo'])->name('reservations.payments.demo-confirmation')->where(['reservation' => '[0-9]+', 'payment' => '[0-9]+']);
     Route::post('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel')->where('reservation', '[0-9]+');
     Route::get('/reservations/{reservation}', [ReservationController::class, 'show'])->name('reservations.show')->where('reservation', '[0-9]+');
 

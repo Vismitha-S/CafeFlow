@@ -18,9 +18,18 @@ class ReservationAvailabilityController extends Controller
         $this->authorize('view', $cafe);
 
         $validated = $request->validated();
-        $startTime = $validated['start_time'] ?? $validated['time'];
         $date = $validated['date'];
         $guestCount = (int) $validated['guests'];
+
+        if ($request->boolean('slots')) {
+            return response()->json([
+                'requested_date' => $date,
+                'guest_count' => $guestCount,
+                'time_slots' => $availabilityService->getAvailableTimeSlots($cafe, $date, $guestCount),
+            ]);
+        }
+
+        $startTime = $validated['start_time'] ?? $validated['time'];
 
         $details = $availabilityService->getAvailabilityDetails($cafe, $date, $startTime, $guestCount);
 

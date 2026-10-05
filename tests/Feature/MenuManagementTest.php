@@ -74,7 +74,7 @@ class MenuManagementTest extends TestCase
         $category = MenuCategory::factory()->create(['cafe_id' => $cafe->id]);
 
         $response = $this->actingAs($owner)->putJson("/menu-categories/{$category->id}", $this->validCategoryData([
-            'name' => 'Updated Category'
+            'name' => 'Updated Category',
         ]));
 
         $response->assertStatus(200);
@@ -156,7 +156,7 @@ class MenuManagementTest extends TestCase
         $item = MenuItem::factory()->create(['cafe_id' => $cafe->id]);
 
         $response = $this->actingAs($owner)->putJson("/menu-items/{$item->id}", $this->validItemData([
-            'name' => 'Updated Item'
+            'name' => 'Updated Item',
         ]));
 
         $response->assertStatus(200);
@@ -206,7 +206,7 @@ class MenuManagementTest extends TestCase
         MenuCategory::factory()->create(['cafe_id' => $cafe->id, 'name' => 'Desserts']);
 
         $response = $this->actingAs($owner)->postJson("/cafes/{$cafe->id}/menu/categories", $this->validCategoryData([
-            'name' => 'Desserts'
+            'name' => 'Desserts',
         ]));
 
         $response->assertStatus(422);
@@ -221,7 +221,7 @@ class MenuManagementTest extends TestCase
 
         $cafe2 = Cafe::factory()->create(['owner_id' => $owner->id]);
         $response = $this->actingAs($owner)->postJson("/cafes/{$cafe2->id}/menu/categories", $this->validCategoryData([
-            'name' => 'Desserts'
+            'name' => 'Desserts',
         ]));
 
         $response->assertStatus(201);
@@ -233,7 +233,7 @@ class MenuManagementTest extends TestCase
         $cafe = Cafe::factory()->create(['owner_id' => $owner->id]);
 
         $response = $this->actingAs($owner)->postJson("/cafes/{$cafe->id}/menu/items", $this->validItemData([
-            'price' => 'invalid_price'
+            'price' => 'invalid_price',
         ]));
 
         $response->assertStatus(422);
@@ -246,7 +246,7 @@ class MenuManagementTest extends TestCase
         $cafe = Cafe::factory()->create(['owner_id' => $owner->id]);
 
         $response = $this->actingAs($owner)->postJson("/cafes/{$cafe->id}/menu/items", $this->validItemData([
-            'price' => -5.00
+            'price' => -5.00,
         ]));
 
         $response->assertStatus(422);
@@ -259,7 +259,7 @@ class MenuManagementTest extends TestCase
         $cafe = Cafe::factory()->create(['owner_id' => $owner->id]);
 
         $response = $this->actingAs($owner)->postJson("/cafes/{$cafe->id}/menu/categories", $this->validCategoryData([
-            'status' => 'archived'
+            'status' => 'archived',
         ]));
 
         $response->assertStatus(422);
@@ -272,7 +272,7 @@ class MenuManagementTest extends TestCase
         $cafe = Cafe::factory()->create(['owner_id' => $owner->id]);
 
         $response = $this->actingAs($owner)->postJson("/cafes/{$cafe->id}/menu/items", $this->validItemData([
-            'is_available' => 'maybe'
+            'is_available' => 'maybe',
         ]));
 
         $response->assertStatus(422);
@@ -285,7 +285,7 @@ class MenuManagementTest extends TestCase
         $cafe = Cafe::factory()->create(['owner_id' => $owner->id]);
 
         $response = $this->actingAs($owner)->postJson("/cafes/{$cafe->id}/menu/items", $this->validItemData([
-            'menu_category_id' => 9999
+            'menu_category_id' => 9999,
         ]));
 
         $response->assertStatus(422);
@@ -297,11 +297,11 @@ class MenuManagementTest extends TestCase
         $owner = User::factory()->create(['role' => 'owner']);
         $cafe1 = Cafe::factory()->create(['owner_id' => $owner->id]);
         $cafe2 = Cafe::factory()->create(['owner_id' => $owner->id]);
-        
+
         $categoryCafe2 = MenuCategory::factory()->create(['cafe_id' => $cafe2->id]);
 
         $response = $this->actingAs($owner)->postJson("/cafes/{$cafe1->id}/menu/items", $this->validItemData([
-            'menu_category_id' => $categoryCafe2->id
+            'menu_category_id' => $categoryCafe2->id,
         ]));
 
         $response->assertStatus(422);
@@ -336,13 +336,13 @@ class MenuManagementTest extends TestCase
     {
         $customer = User::factory()->create(['role' => 'customer']);
         $cafe = Cafe::factory()->create(['status' => 'active']);
-        
+
         // Active and available
         MenuItem::factory()->create(['cafe_id' => $cafe->id, 'status' => 'active', 'is_available' => true]);
-        
+
         // Inactive
         MenuItem::factory()->create(['cafe_id' => $cafe->id, 'status' => 'inactive', 'is_available' => true]);
-        
+
         // Unavailable
         MenuItem::factory()->create(['cafe_id' => $cafe->id, 'status' => 'active', 'is_available' => false]);
 
@@ -368,7 +368,7 @@ class MenuManagementTest extends TestCase
         $customer = User::factory()->create(['role' => 'customer']);
         $cafe = Cafe::factory()->create(['status' => 'active']);
         $category = MenuCategory::factory()->create(['cafe_id' => $cafe->id, 'status' => 'active']);
-        
+
         $category->delete();
 
         $response = $this->actingAs($customer)->getJson("/cafes/{$cafe->id}/menu/categories");
@@ -382,7 +382,7 @@ class MenuManagementTest extends TestCase
         $customer = User::factory()->create(['role' => 'customer']);
         $cafe = Cafe::factory()->create(['status' => 'active']);
         $item = MenuItem::factory()->create(['cafe_id' => $cafe->id, 'status' => 'active', 'is_available' => true]);
-        
+
         $item->delete();
 
         $response = $this->actingAs($customer)->getJson("/cafes/{$cafe->id}/menu/items");
@@ -395,7 +395,7 @@ class MenuManagementTest extends TestCase
     {
         $customer = User::factory()->create(['role' => 'customer']);
         $cafe = Cafe::factory()->create(['status' => 'active']);
-        
+
         $item2 = MenuItem::factory()->create(['cafe_id' => $cafe->id, 'name' => 'B', 'sort_order' => 10]);
         $item1 = MenuItem::factory()->create(['cafe_id' => $cafe->id, 'name' => 'A', 'sort_order' => 5]);
         $item3 = MenuItem::factory()->create(['cafe_id' => $cafe->id, 'name' => 'C', 'sort_order' => 10]); // Same sort order, sorts by name
@@ -403,7 +403,7 @@ class MenuManagementTest extends TestCase
         $response = $this->actingAs($customer)->getJson("/cafes/{$cafe->id}/menu/items");
 
         $response->assertStatus(200);
-        
+
         $data = $response->json();
         $this->assertEquals('A', $data[0]['name']);
         $this->assertEquals('B', $data[1]['name']);
@@ -413,7 +413,7 @@ class MenuManagementTest extends TestCase
     public function test_unauthenticated_users_cannot_access_protected_management_routes()
     {
         $cafe = Cafe::factory()->create();
-        
+
         $response = $this->postJson("/cafes/{$cafe->id}/menu/categories", $this->validCategoryData());
         $response->assertStatus(401);
 

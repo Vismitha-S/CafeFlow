@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Cafe;
 use App\Models\MenuCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,8 +19,8 @@ class MenuCategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'cafe_id' => \App\Models\Cafe::factory(),
-            'name' => $this->faker->unique()->word() . ' Category',
+            'cafe_id' => Cafe::factory(),
+            'name' => $this->faker->unique()->word().' Category',
             'description' => $this->faker->sentence(),
             'sort_order' => $this->faker->numberBetween(0, 100),
             'status' => 'active',

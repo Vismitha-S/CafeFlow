@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateCafeTableRequest extends FormRequest
 {
@@ -25,9 +25,9 @@ class UpdateCafeTableRequest extends FormRequest
                 'required',
                 'string',
                 'max:50',
-                \Illuminate\Validation\Rule::unique('cafe_tables')->where(function ($query) use ($cafeId) {
+                Rule::unique('cafe_tables')->where(function ($query) use ($cafeId) {
                     return $query->where('cafe_id', $cafeId);
-                })->ignore($cafeTable->id)
+                })->ignore($cafeTable->id),
             ],
             'name' => ['nullable', 'string', 'max:100'],
             'capacity' => ['required', 'integer', 'min:1', 'max:50'],

@@ -6,6 +6,7 @@ use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Services\PaymentService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -175,7 +176,7 @@ class PaymentServiceTest extends TestCase
         $this->assertSame('LKR', $payment->currency);
         $this->assertSame('legacy-provider', $payment->provider);
         $this->assertSame('legacy-reference', $payment->provider_reference);
-        $this->assertInstanceOf(\Carbon\Carbon::class, $payment->refunded_at);
+        $this->assertInstanceOf(Carbon::class, $payment->refunded_at);
         $this->assertSame('25.50', $payment->refund_amount);
         $this->assertSame(['source' => 'legacy'], $payment->metadata);
     }

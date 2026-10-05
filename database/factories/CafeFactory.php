@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Cafe;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +19,7 @@ class CafeFactory extends Factory
     public function definition(): array
     {
         return [
-            'owner_id' => \App\Models\User::factory(),
+            'owner_id' => User::factory(),
             'name' => $this->faker->company(),
             'slug' => $this->faker->unique()->slug(),
             'description' => $this->faker->paragraph(),

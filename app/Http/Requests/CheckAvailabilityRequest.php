@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Cafe;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -11,11 +12,12 @@ class CheckAvailabilityRequest extends FormRequest
     public function authorize(): bool
     {
         $cafe = $this->route('cafe');
-        if ($cafe instanceof \App\Models\Cafe) {
+        if ($cafe instanceof Cafe) {
             $user = $this->user();
             if ($user) {
                 return $user->can('view', $cafe);
             }
+
             return $cafe->status === 'active';
         }
 
@@ -37,12 +39,16 @@ class CheckAvailabilityRequest extends FormRequest
     {
         $minGuests = (int) config('reservations.min_guests', 1);
         $maxGuests = (int) config('reservations.max_guests', 20);
+        $startTimeRules = $this->boolean('slots')
+            ? ['nullable', 'date_format:H:i']
+            : ['required', 'date_format:H:i'];
 
         return [
             'date' => ['required', 'date_format:Y-m-d'],
             'time' => ['nullable', 'date_format:H:i'],
-            'start_time' => ['required', 'date_format:H:i'],
-            'guests' => ['required', 'integer', 'min:' . $minGuests, 'max:' . $maxGuests],
+            'start_time' => $startTimeRules,
+            'guests' => ['required', 'integer', 'min:'.$minGuests, 'max:'.$maxGuests],
+            'slots' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -52,7 +58,7 @@ class CheckAvailabilityRequest extends FormRequest
         $validator->after(function ($validator) {
             if ($this->filled('date') && $this->filled('start_time')) {
                 try {
-                    $start = Carbon::createFromFormat('Y-m-d H:i', $this->input('date') . ' ' . $this->input('start_time'));
+                    $start = Carbon::createFromFormat('Y-m-d H:i', $this->input('date').' '.$this->input('start_time'));
                     $duration = (int) config('reservations.default_duration_minutes', 90);
                     $end = (clone $start)->addMinutes($duration);
 

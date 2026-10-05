@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Cafe;
 use App\Models\MenuItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,9 +19,9 @@ class MenuItemFactory extends Factory
     public function definition(): array
     {
         return [
-            'cafe_id' => \App\Models\Cafe::factory(),
+            'cafe_id' => Cafe::factory(),
             'menu_category_id' => null,
-            'name' => $this->faker->word() . ' Item',
+            'name' => $this->faker->word().' Item',
             'description' => $this->faker->sentence(),
             'price' => $this->faker->randomFloat(2, 5, 5000),
             'is_available' => true,

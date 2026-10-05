@@ -6,12 +6,74 @@
 
         {{-- 1. Personalized Greeting Section with subtle coffee steam & floral motif --}}
         <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-cream-100/90 via-white/80 to-cream-100/60 border border-cream-200/90 p-6 sm:p-10 shadow-subtle">
-            {{-- Decorative background coffee motif --}}
-            <div class="absolute -right-8 -bottom-10 w-56 h-56 opacity-10 pointer-events-none text-coffee-800">
-                <svg viewBox="0 0 200 200" fill="currentColor">
-                    <path d="M100 15c-15 25-10 40 5 60-20-10-35-5-45 10 15-5 30 0 35 15-25-5-40 10-45 30 15-10 30-5 35 10-30 0-45 20-45 45 25-10 40 0 45 20-20-5-35 5-35 25 25-5 40 10 45 35 15-25 30-20 40-5-5-20 5-35 25-40-20 0-30-15-25-35 20 10 35 5 40-15-25 0-35-15-30-35 20 5 30-5 30-25-25 5-35-10-35-30 20-5 25-20 20-40-20 10-35 5-45-10 15-10 15-25 5-45-10 20-25 25-40 25z"/>
-                </svg>
-            </div>
+        {{-- Decorative background: hand-drawn style coffee illustration --}}
+        <div class="absolute right-0 bottom-0 top-0 w-80 pointer-events-none select-none overflow-hidden hidden lg:block">
+            <svg viewBox="0 0 340 300" fill="none" xmlns="http://www.w3.org/2000/svg" class="absolute right-0 bottom-0 h-full w-auto opacity-[0.18]" stroke="#5C3317" stroke-linecap="round" stroke-linejoin="round">
+                {{-- Steam wisps --}}
+                <path d="M180 60 Q175 45 180 30 Q185 15 180 0" stroke-width="2.5" fill="none"/>
+                <path d="M196 65 Q191 50 196 35 Q201 20 196 5" stroke-width="2.5" fill="none"/>
+                <path d="M212 62 Q207 47 212 32 Q217 17 212 2" stroke-width="2.5" fill="none"/>
+
+                {{-- Moka pot body --}}
+                <path d="M160 200 L165 130 Q166 120 175 118 L215 118 Q224 120 225 130 L230 200 Z" stroke-width="2.8" fill="none"/>
+                {{-- Moka pot top chamber --}}
+                <path d="M170 118 Q172 95 185 88 L205 88 Q218 95 220 118" stroke-width="2.5" fill="none"/>
+                {{-- Moka pot lid / cap --}}
+                <ellipse cx="195" cy="86" rx="14" ry="6" stroke-width="2.5" fill="none"/>
+                <rect x="190" y="76" width="10" height="11" rx="3" stroke-width="2.2" fill="none"/>
+                {{-- Moka pot handle --}}
+                <path d="M230 155 Q258 155 260 170 Q262 185 242 188 L230 188" stroke-width="2.8" fill="none"/>
+                {{-- Moka pot base ring --}}
+                <ellipse cx="195" cy="200" rx="35" ry="6" stroke-width="2" fill="none"/>
+                {{-- Waist of moka pot --}}
+                <path d="M165 160 Q195 168 225 160" stroke-width="1.8" fill="none"/>
+
+                {{-- Pouring stream --}}
+                <path d="M163 175 Q140 185 120 195 Q100 210 95 225" stroke-width="3" fill="none"/>
+                <path d="M163 178 Q138 190 118 202 Q98 218 97 230" stroke-width="2" fill="none"/>
+
+                {{-- Coffee cup --}}
+                <path d="M60 225 L75 285 Q76 292 85 292 L125 292 Q134 292 135 285 L150 225 Z" stroke-width="2.8" fill="none"/>
+                {{-- Cup handle --}}
+                <path d="M150 240 Q172 240 172 257 Q172 274 150 274" stroke-width="2.5" fill="none"/>
+                {{-- Cup saucer --}}
+                <ellipse cx="105" cy="293" rx="52" ry="8" stroke-width="2" fill="none"/>
+                {{-- Coffee liquid in cup --}}
+                <path d="M68 243 Q105 252 142 243" stroke-width="1.8" fill="none"/>
+
+                {{-- Coffee beans scattered --}}
+                <ellipse cx="270" cy="100" rx="13" ry="9" stroke-width="2.2" fill="none" transform="rotate(-25 270 100)"/>
+                <path d="M263 100 Q270 93 277 100" stroke-width="1.5" fill="none" transform="rotate(-25 270 100)"/>
+
+                <ellipse cx="295" cy="240" rx="13" ry="9" stroke-width="2.2" fill="none" transform="rotate(15 295 240)"/>
+                <path d="M288 240 Q295 233 302 240" stroke-width="1.5" fill="none" transform="rotate(15 295 240)"/>
+
+                <ellipse cx="60" cy="180" rx="11" ry="7" stroke-width="2" fill="none" transform="rotate(40 60 180)"/>
+                <path d="M54 180 Q60 174 66 180" stroke-width="1.4" fill="none" transform="rotate(40 60 180)"/>
+
+                <ellipse cx="300" cy="170" rx="10" ry="7" stroke-width="2" fill="none" transform="rotate(-10 300 170)"/>
+                <path d="M294 170 Q300 164 306 170" stroke-width="1.4" fill="none" transform="rotate(-10 300 170)"/>
+
+                {{-- Leaf sprigs --}}
+                <path d="M50 130 Q60 110 80 118 Q65 130 50 130Z" stroke-width="2" fill="none"/>
+                <path d="M50 130 Q55 120 65 124" stroke-width="1.4" fill="none"/>
+                <path d="M48 130 Q38 115 55 108 Q50 122 48 130Z" stroke-width="2" fill="none"/>
+
+                <path d="M285 60 Q295 42 315 50 Q300 62 285 60Z" stroke-width="2" fill="none"/>
+                <path d="M285 60 Q290 50 302 54" stroke-width="1.4" fill="none"/>
+                <path d="M283 60 Q273 45 290 38 Q285 52 283 60Z" stroke-width="2" fill="none"/>
+
+                {{-- Splash drops from pour --}}
+                <circle cx="90" cy="218" r="3" stroke-width="1.8" fill="none"/>
+                <circle cx="82" cy="226" r="2" stroke-width="1.6" fill="none"/>
+                <circle cx="100" cy="222" r="2.5" stroke-width="1.6" fill="none"/>
+
+                {{-- Small dots / texture --}}
+                <circle cx="250" cy="135" r="2.5" stroke-width="1.5" fill="none"/>
+                <circle cx="330" cy="200" r="3" stroke-width="1.5" fill="none"/>
+                <circle cx="40" cy="260" r="2" stroke-width="1.5" fill="none"/>
+            </svg>
+        </div>
 
             <div class="relative z-10 max-w-3xl">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cream-200/60 border border-cream-300/60 text-xs font-semibold text-coffee-700 tracking-wide uppercase mb-3">
@@ -20,7 +82,7 @@
                 </div>
 
                 <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-coffee-950 tracking-tight leading-tight">
-                    {{ $greeting ?? 'Good morning' }}, <span class="text-accent-600">{{ explode(' ', Auth::user()->name)[0] }}</span> ☕
+                    {{ $greeting ?? 'Good morning' }}, <span class="text-accent-600">{{ explode(' ', Auth::user()->name)[0] }}</span>
                 </h1>
 
                 <p class="font-serif italic text-lg sm:text-xl text-coffee-600 mt-2 font-normal">
@@ -165,6 +227,25 @@
                 <h3 class="font-serif text-lg font-bold text-coffee-900 group-hover:text-rose-600 transition-colors">Favourites</h3>
                 <p class="text-xs text-coffee-500 mt-1">Revisit your saved cafe gems, favorite corner tables, and wishlists.</p>
             </a>
+        </div>
+
+        {{-- Cafe Owner Callout Banner --}}
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-coffee-900 via-coffee-800 to-coffee-950 p-5 sm:p-6 text-white shadow-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="space-y-1">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent-500/20 text-accent-300 text-[11px] font-semibold tracking-wide uppercase">
+                    <span>Cafe Partners</span>
+                </div>
+                <h3 class="font-serif text-lg sm:text-xl font-bold text-cream-50">Do you own or manage an artisanal cafe?</h3>
+                <p class="text-xs sm:text-sm text-cream-200/80 max-w-xl">
+                    Join CafeFlow to list your tables, configure reservation deposits, and receive guaranteed bookings.
+                </p>
+            </div>
+            <form method="POST" action="{{ route('switch.to.owner') }}" class="shrink-0">
+                @csrf
+                <button type="submit" class="btn-primary !py-2.5 !px-5 text-xs font-semibold whitespace-nowrap shadow-md hover:scale-[1.02] transition-transform">
+                    List Your Cafe &rarr;
+                </button>
+            </form>
         </div>
 
         {{-- 3. Recommended Cafes Section --}}

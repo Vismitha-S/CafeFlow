@@ -155,8 +155,8 @@ class ReservationService
                 ->where('cafe_table_id', $table->id)
                 ->whereDate('reservation_date', $bookingData['reservation_date'])
                 ->whereIn('status', $blockingStatuses)
-                ->where('start_time', '<', $endTime . ':00')
-                ->where('end_time', '>', $startTime . ':00')
+                ->where('start_time', '<', $endTime.':00')
+                ->where('end_time', '>', $startTime.':00')
                 ->lockForUpdate()
                 ->exists();
 

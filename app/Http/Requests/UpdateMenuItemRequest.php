@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateMenuItemRequest extends FormRequest
 {
@@ -27,7 +27,7 @@ class UpdateMenuItemRequest extends FormRequest
             'menu_category_id' => [
                 'nullable',
                 'exists:menu_categories,id',
-                \Illuminate\Validation\Rule::exists('menu_categories', 'id')->where('cafe_id', $cafeId)->whereNull('deleted_at')
+                Rule::exists('menu_categories', 'id')->where('cafe_id', $cafeId)->whereNull('deleted_at'),
             ],
             'image_path' => ['nullable', 'string', 'max:255'],
             'is_available' => ['boolean'],

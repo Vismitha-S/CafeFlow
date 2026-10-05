@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateMenuCategoryRequest extends FormRequest
 {
@@ -25,9 +25,9 @@ class UpdateMenuCategoryRequest extends FormRequest
                 'required',
                 'string',
                 'max:100',
-                \Illuminate\Validation\Rule::unique('menu_categories')->where(function ($query) use ($cafeId) {
+                Rule::unique('menu_categories')->where(function ($query) use ($cafeId) {
                     return $query->where('cafe_id', $cafeId)->whereNull('deleted_at');
-                })->ignore($category->id)
+                })->ignore($category->id),
             ],
             'description' => ['nullable', 'string', 'max:500'],
             'sort_order' => ['integer', 'min:0'],

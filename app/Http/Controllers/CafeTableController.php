@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cafe;
-use App\Models\CafeTable;
 use App\Http\Requests\StoreCafeTableRequest;
 use App\Http\Requests\UpdateCafeTableRequest;
-use Illuminate\Http\Request;
+use App\Models\Cafe;
+use App\Models\CafeTable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class CafeTableController extends Controller
 {
@@ -30,6 +30,7 @@ class CafeTableController extends Controller
     public function show(Request $request, CafeTable $cafeTable)
     {
         $this->authorize('view', $cafeTable);
+
         return response()->json($cafeTable);
     }
 

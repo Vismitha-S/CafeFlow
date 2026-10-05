@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
+use Database\Factories\CafeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Cafe extends Model
 {
-    /** @use HasFactory<\Database\Factories\CafeFactory> */
+    /** @use HasFactory<CafeFactory> */
     use HasFactory, SoftDeletes;
 
     protected $guarded = ['id'];

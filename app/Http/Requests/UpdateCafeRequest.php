@@ -2,8 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
+use App\Models\Cafe;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateCafeRequest extends FormRequest
 {
@@ -17,16 +18,32 @@ class UpdateCafeRequest extends FormRequest
 
     public function rules(): array
     {
-        $cafeId = $this->route('cafe') ? $this->route('cafe')->id : null;
+        $cafe = $this->route('cafe');
+
+        $cafeId = null;
+        if ($cafe instanceof Cafe) {
+            $cafeId = $cafe->id;
+        } elseif (is_numeric($cafe)) {
+            $cafeId = (int) $cafe;
+        } elseif ($this->user()?->cafe) {
+            $cafeId = $this->user()->cafe->id;
+        }
 
         return [
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'alpha_dash', 'max:255', 'unique:cafes,slug,' . $cafeId],
+            'slug' => [
+                'required',
+                'string',
+                'alpha_dash',
+                'max:255',
+                Rule::unique('cafes', 'slug')->ignore($cafeId),
+            ],
             'description' => ['nullable', 'string'],
             'address' => ['required', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
+            'image_path' => ['nullable', 'string', 'max:2000'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'reservation_fee' => ['required', 'numeric', 'min:0'],

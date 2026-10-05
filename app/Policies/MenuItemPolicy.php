@@ -4,11 +4,10 @@ namespace App\Policies;
 
 use App\Models\MenuItem;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class MenuItemPolicy
 {
-    public function before(User $user, string $ability): bool|null
+    public function before(User $user, string $ability): ?bool
     {
         if ($user->isAdmin()) {
             return true;
@@ -33,6 +32,7 @@ class MenuItemPolicy
             if ($menuItem->category) {
                 $isCategoryActive = $menuItem->category->status === 'active';
             }
+
             return $menuItem->status === 'active' && $menuItem->is_available && $menuItem->cafe->status === 'active' && $isCategoryActive;
         }
 

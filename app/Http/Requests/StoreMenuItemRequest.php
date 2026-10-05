@@ -2,8 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
+use App\Models\Cafe;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreMenuItemRequest extends FormRequest
 {
@@ -18,7 +19,7 @@ class StoreMenuItemRequest extends FormRequest
     public function rules(): array
     {
         $cafe = $this->route('cafe');
-        $cafeId = $cafe instanceof \App\Models\Cafe ? $cafe->id : (int) $cafe;
+        $cafeId = $cafe instanceof Cafe ? $cafe->id : (int) $cafe;
 
         return [
             'name' => ['required', 'string', 'max:100'],
@@ -27,7 +28,7 @@ class StoreMenuItemRequest extends FormRequest
             'menu_category_id' => [
                 'nullable',
                 'exists:menu_categories,id',
-                \Illuminate\Validation\Rule::exists('menu_categories', 'id')->where('cafe_id', $cafeId)->whereNull('deleted_at')
+                Rule::exists('menu_categories', 'id')->where('cafe_id', $cafeId)->whereNull('deleted_at'),
             ],
             'image_path' => ['nullable', 'string', 'max:255'],
             'is_available' => ['boolean'],

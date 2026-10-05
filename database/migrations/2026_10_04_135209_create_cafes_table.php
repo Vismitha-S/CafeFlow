@@ -29,7 +29,7 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive'])->default('inactive')->index();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index('owner_id');
         });
     }

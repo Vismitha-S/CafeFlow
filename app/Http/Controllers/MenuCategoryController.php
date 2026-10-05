@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cafe;
-use App\Models\MenuCategory;
 use App\Http\Requests\StoreMenuCategoryRequest;
 use App\Http\Requests\UpdateMenuCategoryRequest;
-use Illuminate\Http\Request;
+use App\Models\Cafe;
+use App\Models\MenuCategory;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class MenuCategoryController extends Controller
 {
@@ -29,6 +29,7 @@ class MenuCategoryController extends Controller
     public function show(Request $request, MenuCategory $menuCategory)
     {
         $this->authorize('view', $menuCategory);
+
         return response()->json($menuCategory);
     }
 
@@ -53,11 +54,11 @@ class MenuCategoryController extends Controller
     public function destroy(Request $request, MenuCategory $menuCategory)
     {
         $this->authorize('delete', $menuCategory);
-        
+
         // Prevent deletion if it has items? The prompt says "safely detach/reassign items before deletion".
         // Let's detach the items (set menu_category_id to null)
         $menuCategory->items()->update(['menu_category_id' => null]);
-        
+
         $menuCategory->delete();
 
         return response()->json(null, 204);

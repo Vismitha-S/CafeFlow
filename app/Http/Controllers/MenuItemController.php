@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cafe;
-use App\Models\MenuItem;
 use App\Http\Requests\StoreMenuItemRequest;
 use App\Http\Requests\UpdateMenuItemRequest;
-use Illuminate\Http\Request;
+use App\Models\Cafe;
+use App\Models\MenuItem;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class MenuItemController extends Controller
 {
@@ -24,9 +24,9 @@ class MenuItemController extends Controller
             // also need to ensure category is active if assigned
             $query->where(function ($q) {
                 $q->whereNull('menu_category_id')
-                  ->orWhereHas('category', function ($q2) {
-                      $q2->where('status', 'active');
-                  });
+                    ->orWhereHas('category', function ($q2) {
+                        $q2->where('status', 'active');
+                    });
             });
         }
 
@@ -37,6 +37,7 @@ class MenuItemController extends Controller
     {
         $this->authorize('view', $menuItem);
         $menuItem->load('category');
+
         return response()->json($menuItem);
     }
 

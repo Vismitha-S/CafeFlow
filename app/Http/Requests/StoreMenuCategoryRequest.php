@@ -2,8 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
+use App\Models\Cafe;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreMenuCategoryRequest extends FormRequest
 {
@@ -18,16 +19,16 @@ class StoreMenuCategoryRequest extends FormRequest
     public function rules(): array
     {
         $cafe = $this->route('cafe');
-        $cafeId = $cafe instanceof \App\Models\Cafe ? $cafe->id : (int) $cafe;
+        $cafeId = $cafe instanceof Cafe ? $cafe->id : (int) $cafe;
 
         return [
             'name' => [
                 'required',
                 'string',
                 'max:100',
-                \Illuminate\Validation\Rule::unique('menu_categories')->where(function ($query) use ($cafeId) {
+                Rule::unique('menu_categories')->where(function ($query) use ($cafeId) {
                     return $query->where('cafe_id', $cafeId)->whereNull('deleted_at');
-                })
+                }),
             ],
             'description' => ['nullable', 'string', 'max:500'],
             'sort_order' => ['integer', 'min:0'],

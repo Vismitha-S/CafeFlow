@@ -2,8 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
+use App\Models\Cafe;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCafeTableRequest extends FormRequest
 {
@@ -18,16 +19,16 @@ class StoreCafeTableRequest extends FormRequest
     public function rules(): array
     {
         $cafe = $this->route('cafe');
-        $cafeId = $cafe instanceof \App\Models\Cafe ? $cafe->id : (int) $cafe;
+        $cafeId = $cafe instanceof Cafe ? $cafe->id : (int) $cafe;
 
         return [
             'table_number' => [
                 'required',
                 'string',
                 'max:50',
-                \Illuminate\Validation\Rule::unique('cafe_tables')->where(function ($query) use ($cafeId) {
+                Rule::unique('cafe_tables')->where(function ($query) use ($cafeId) {
                     return $query->where('cafe_id', $cafeId);
-                })
+                }),
             ],
             'name' => ['nullable', 'string', 'max:100'],
             'capacity' => ['required', 'integer', 'min:1', 'max:50'],
